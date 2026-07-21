@@ -536,59 +536,111 @@ let state = {
 let rowIdCounter = 1;
 function newId(){ return 'r'+(rowIdCounter++)+'_'+Math.random().toString(36).slice(2,7); }
 
-// ---------- STORAGE ----------
-const STORAGE_KEY = 'ledger-data';
+// ---------- SUPABASE CLOUD SYNC ----------
+const SUPABASE_URL = 'https://jorxmhbigmnqdctyjuiu.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_xRzA0NOlMfSaqHDaAXnRug_8FZ46Euc';
+const ROW_ID = 'shared';
+
 let saveTimer = null;
+let ignoreNextRemote = false;
+
 function markSaving(){
   const el = document.getElementById('saveStatus');
   el.textContent = 'saving…'; el.className='save-status saving';
 }
 function markSaved(){
   const el = document.getElementById('saveStatus');
-  el.textContent = 'saved'; el.className='save-status saved';
+  el.textContent = 'saved ☁'; el.className='save-status saved';
 }
+function markError(){
+  const el = document.getElementById('saveStatus');
+  el.textContent = 'save failed'; el.className='save-status';
+}
+
+async function sbFetch(path, opts={}){
+  return fetch(SUPABASE_URL + path, {
+    ...opts,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal',
+      ...(opts.headers||{})
+    }
+  });
+}
+
 function scheduleSave(){
   markSaving();
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(()=>{
+  saveTimer = setTimeout(async ()=>{
     try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      ignoreNextRemote = true;
+      const res = await sbFetch('/rest/v1/ledger_state?id=eq.'+ROW_ID, {
+        method: 'PATCH',
+        body: JSON.stringify({ data: state, updated_at: new Date().toISOString() })
+      });
+      if(!res.ok) throw new Error(await res.text());
       markSaved();
     }catch(e){
-      const el = document.getElementById('saveStatus');
-      el.textContent = 'save failed'; el.className='save-status';
-      console.error('Storage error', e);
+      markError();
+      console.error('Save error', e);
     }
-  }, 400);
+  }, 600);
 }
-function loadState(){
+
+function migrateLoaded(loaded){
+  state = Object.assign(state, loaded);
+  if(state.budget && !state.budgetItems){
+    state.budgetItems = Object.fromEntries(CATEGORIES.map(c=>[c,[]]));
+    state.budget.forEach(b=>{
+      if(b.category && (b.projected||b.actual)){
+        state.budgetItems[b.category] = state.budgetItems[b.category] || [];
+        state.budgetItems[b.category].push({id:newId(), name:'General', projected:b.projected||0, actual:b.actual||0});
+      }
+    });
+    delete state.budget;
+  }
+  if(!state.budgetItems) state.budgetItems = Object.fromEntries(CATEGORIES.map(c=>[c,[]]));
+  CATEGORIES.forEach(c=>{ if(!state.budgetItems[c]) state.budgetItems[c] = []; });
+  if(!state.creditcars) state.creditcars = [];
+}
+
+async function loadState(){
+  const el = document.getElementById('saveStatus');
+  el.textContent = 'connecting…'; el.className='save-status saving';
   try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw){
-      const loaded = JSON.parse(raw);
-      state = Object.assign(state, loaded);
-      // Migrate old flat budget format (one row per category) to new per-category item lists
-      if(state.budget && !state.budgetItems){
-        state.budgetItems = Object.fromEntries(CATEGORIES.map(c=>[c,[]]));
-        state.budget.forEach(b=>{
-          if(b.category && (b.projected||b.actual)){
-            state.budgetItems[b.category] = state.budgetItems[b.category] || [];
-            state.budgetItems[b.category].push({id:newId(), name:'General', projected:b.projected||0, actual:b.actual||0});
-          }
-        });
-        delete state.budget;
-      }
-      if(!state.budgetItems){
-        state.budgetItems = Object.fromEntries(CATEGORIES.map(c=>[c,[]]));
-      }
-      CATEGORIES.forEach(c=>{ if(!state.budgetItems[c]) state.budgetItems[c] = []; });
-      if(!state.creditcars) state.creditcars = [];
+    const res = await sbFetch('/rest/v1/ledger_state?id=eq.'+ROW_ID+'&select=data', {
+      headers: { 'Accept': 'application/json' }
+    });
+    const rows = await res.json();
+    if(rows && rows[0] && rows[0].data && Object.keys(rows[0].data).length > 0){
+      migrateLoaded(rows[0].data);
     }
   }catch(e){
-    console.log('No existing data yet, starting fresh.');
+    console.error('Load error', e);
+    el.textContent = 'offline'; el.className='save-status';
   }
   render();
   markSaved();
+  startRealtimeSync();
+}
+
+function startRealtimeSync(){
+  // Poll every 8 seconds for changes from the other person
+  setInterval(async ()=>{
+    if(ignoreNextRemote){ ignoreNextRemote = false; return; }
+    try{
+      const res = await sbFetch('/rest/v1/ledger_state?id=eq.'+ROW_ID+'&select=data', {
+        headers:{ 'Accept':'application/json' }
+      });
+      const rows = await res.json();
+      if(rows && rows[0] && rows[0].data && Object.keys(rows[0].data).length > 0){
+        migrateLoaded(rows[0].data);
+        render();
+      }
+    }catch(e){ /* silent */ }
+  }, 8000);
 }
 
 // ---------- TABS ----------
