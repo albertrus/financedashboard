@@ -271,6 +271,33 @@
   }
   .cat-col-labels span:not(:first-child){text-align:right;}
 
+  /* Overview savings big blocks */
+  .ov-savings-section{
+    margin:28px 0;border:1px solid var(--line-strong);background:var(--bg-panel);
+  }
+  .ov-savings-head{padding:13px 18px;border-bottom:1px solid var(--line-strong);}
+  .ov-savings-head h3{
+    font-family:'Fraunces',serif;font-size:18px;font-weight:600;margin:0;
+    color:var(--year-color,var(--ink));
+  }
+  .ov-savings-cols{display:grid;grid-template-columns:1fr 1px 1fr;}
+  .ov-savings-col{padding:18px 20px;}
+  .ov-savings-divider{background:var(--line-strong);}
+  .ov-savings-blocks{display:grid;grid-template-columns:1fr;gap:12px;}
+  .ov-savings-block{
+    background:var(--bg);border:1px solid var(--line-strong);
+    padding:20px;text-align:center;
+  }
+  .ov-savings-block .name{
+    font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;
+    letter-spacing:0.06em;color:var(--ink-soft);margin-bottom:8px;
+  }
+  .ov-savings-block .amount{
+    font-family:'Fraunces',serif;font-size:32px;font-weight:600;color:var(--year-color,var(--you));
+  }
+  .ov-savings-col:last-child .ov-savings-block .amount{color:var(--her);}
+  .ov-savings-col:first-child .ov-savings-block .amount{color:var(--you);}
+
   /* Annual Income Reference */
   .annual-ref{
     margin-top:28px;
@@ -406,6 +433,9 @@
     .split .divider{display:none;}
     .split .col:first-child{border-bottom:1px solid var(--line-strong);}
     .stat-grid{grid-template-columns:1fr;}
+    .ov-savings-cols{grid-template-columns:1fr;}
+    .ov-savings-divider{display:none;}
+    .ov-savings-col:first-child{border-bottom:1px solid var(--line-strong);}
     .masthead h1{font-size:26px;}
   }
 </style>
@@ -507,6 +537,24 @@
             <div class="label">Budget health</div>
             <div class="value" id="ovHealth">—</div>
             <div class="sub" id="ovHealthSub"></div>
+          </div>
+        </div>
+
+        <!-- SAVINGS BIG BLOCKS -->
+        <div class="ov-savings-section">
+          <div class="ov-savings-head">
+            <h3>Savings</h3>
+          </div>
+          <div class="ov-savings-cols">
+            <div class="ov-savings-col">
+              <div class="col-head"><span class="swatch you"></span><span id="ovSvLabelYou">Him</span></div>
+              <div class="ov-savings-blocks" id="ovSvBlocksYou"></div>
+            </div>
+            <div class="ov-savings-divider"></div>
+            <div class="ov-savings-col">
+              <div class="col-head"><span class="swatch her"></span><span id="ovSvLabelHer">Her</span></div>
+              <div class="ov-savings-blocks" id="ovSvBlocksHer"></div>
+            </div>
           </div>
         </div>
 
@@ -1036,8 +1084,8 @@ function updateNames(){
 }
 function applyNameLabels(){
   const you = state.names.you, her = state.names.her;
-  ['incLabelYou','wkLabelYou','moLabelYou','svLabelYou'].forEach(id=>document.getElementById(id).textContent=you);
-  ['incLabelHer','wkLabelHer','moLabelHer','svLabelHer'].forEach(id=>document.getElementById(id).textContent=her);
+  ['incLabelYou','wkLabelYou','moLabelYou','svLabelYou','ovSvLabelYou'].forEach(id=>document.getElementById(id).textContent=you);
+  ['incLabelHer','wkLabelHer','moLabelHer','svLabelHer','ovSvLabelHer'].forEach(id=>document.getElementById(id).textContent=her);
   document.getElementById('thYou').textContent = you;
   document.getElementById('thHer').textContent = her;
   applyNameLabelsRef();
@@ -1501,6 +1549,31 @@ function applyMortgageCalc(){
   recalc();
 }
 
+// ---------- OVERVIEW SAVINGS BLOCKS ----------
+function renderOverviewSavingsBlocks(sv){
+  const youEl = document.getElementById('ovSvBlocksYou');
+  const herEl = document.getElementById('ovSvBlocksHer');
+  if(!youEl || !herEl) return;
+  const youItems = (sv.you||[]);
+  const herItems = (sv.her||[]);
+  youEl.innerHTML = youItems.length
+    ? youItems.map(it=>`
+        <div class="ov-savings-block">
+          <div class="name">${escapeHtml(it.name)||'Untitled'}</div>
+          <div class="amount">${fmt(it.amount||0)}</div>
+        </div>
+      `).join('')
+    : '<div class="empty-hint">No savings added yet.</div>';
+  herEl.innerHTML = herItems.length
+    ? herItems.map(it=>`
+        <div class="ov-savings-block">
+          <div class="name">${escapeHtml(it.name)||'Untitled'}</div>
+          <div class="amount">${fmt(it.amount||0)}</div>
+        </div>
+      `).join('')
+    : '<div class="empty-hint">No savings added yet.</div>';
+}
+
 // ---------- BILLS / SAVINGS (shared row-list logic) ----------
 function bucketSection(prefix){
   if(prefix.startsWith('wk')) return 'weekly';
@@ -1699,6 +1772,7 @@ function recalc(){
     document.getElementById('svHerTotal').textContent = fmt(svHerSum);
     document.getElementById('svCombinedTotal').textContent = fmt(svYouSum+svHerSum);
   }
+  renderOverviewSavingsBlocks(sv);
 
   // School loans
   const schoolOwed = y.debts.reduce((s,d)=>s+(d.amount||0),0);
