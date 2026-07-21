@@ -321,7 +321,8 @@
     <button class="tab" data-tab="weekly">Weekly Bills</button>
     <button class="tab" data-tab="monthly">Monthly Bills</button>
     <button class="tab" data-tab="budget">Monthly Budget</button>
-    <button class="tab" data-tab="debt">Debt & Loans</button>
+    <button class="tab" data-tab="debt">School Loans</button>
+    <button class="tab" data-tab="creditcar">Credit & Car Loans</button>
   </div>
 
   <!-- OVERVIEW -->
@@ -458,17 +459,17 @@
     </table>
   </div>
 
-  <!-- DEBT -->
+  <!-- SCHOOL LOANS -->
   <div class="panel" id="panel-debt">
-    <h2 class="section-title">Debt & loans</h2>
-    <p class="section-sub">Student loans, car loans, credit cards — anything owed. Feeds your combined debt total.</p>
+    <h2 class="section-title">School loans</h2>
+    <p class="section-sub">Student loans of any kind. Feeds into your combined debt total on the overview.</p>
     <table class="debt-table">
       <thead>
         <tr><th style="width:26%">Name</th><th style="width:14%">Owner</th><th style="width:14%">Type</th><th style="width:15%">Amount owed</th><th style="width:14%">Interest rate</th><th style="width:15%">Min. payment</th><th></th></tr>
       </thead>
       <tbody id="debtBody"></tbody>
     </table>
-    <button class="add-btn" onclick="addDebtRow()">+ Add loan / debt</button>
+    <button class="add-btn" onclick="addDebtRow('school')">+ Add school loan</button>
 
     <div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:24px;">
       <div class="stat-card">
@@ -486,11 +487,41 @@
     </div>
   </div>
 
+  <!-- CREDIT & CAR LOANS -->
+  <div class="panel" id="panel-creditcar">
+    <h2 class="section-title">Credit & car loans</h2>
+    <p class="section-sub">Credit cards, auto loans, personal loans — anything non-school. Also feeds your combined debt total.</p>
+    <table class="debt-table">
+      <thead>
+        <tr><th style="width:26%">Name</th><th style="width:14%">Owner</th><th style="width:14%">Type</th><th style="width:15%">Amount owed</th><th style="width:14%">Interest rate</th><th style="width:15%">Min. payment</th><th></th></tr>
+      </thead>
+      <tbody id="creditcarBody"></tbody>
+    </table>
+    <button class="add-btn" onclick="addDebtRow('creditcar')">+ Add credit / car loan</button>
+
+    <div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:24px;">
+      <div class="stat-card">
+        <div class="label">Total owed</div>
+        <div class="value" id="creditcarTotalOwed">$0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Total min. monthly payments</div>
+        <div class="value" id="creditcarTotalMin">$0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Weighted avg. interest</div>
+        <div class="value" id="creditcarAvgRate">0%</div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
 const CATEGORIES = ["Home","Transportation","Daily Living","Entertainment","Health","Subscriptions"];
 const DEBT_TYPES = ["Student Loan","Auto Loan","Credit Card","Personal Loan","Other"];
+const SCHOOL_TYPES = ["Federal Subsidized","Federal Unsubsidized","PLUS Loan","Private Student Loan","Other"];
+const CREDITCAR_TYPES = ["Credit Card","Auto Loan","Personal Loan","Other"];
 
 let state = {
   names: { you:"You", her:"Her" },
@@ -498,7 +529,8 @@ let state = {
   weekly: { you:[], her:[] },
   monthly: { you:[], her:[] },
   budgetItems: Object.fromEntries(CATEGORIES.map(c=>[c,[]])),
-  debts: []
+  debts: [],
+  creditcars: []
 };
 
 let rowIdCounter = 1;
@@ -550,6 +582,7 @@ function loadState(){
         state.budgetItems = Object.fromEntries(CATEGORIES.map(c=>[c,[]]));
       }
       CATEGORIES.forEach(c=>{ if(!state.budgetItems[c]) state.budgetItems[c] = []; });
+      if(!state.creditcars) state.creditcars = [];
     }
   }catch(e){
     console.log('No existing data yet, starting fresh.');
@@ -624,51 +657,61 @@ function removeBillRow(prefix, id){
   recalc();
 }
 
-// ---------- DEBT ----------
-function addDebtRow(data){
-  const row = data || { id:newId(), name:'', owner:'you', type:DEBT_TYPES[0], amount:0, rate:0, minPay:0 };
-  state.debts.push(row);
-  renderDebtTable();
+// ---------- DEBT (shared logic for both pools) ----------
+function addDebtRow(pool, data){
+  const types = pool==='creditcar' ? CREDITCAR_TYPES : SCHOOL_TYPES;
+  const row = data || { id:newId(), name:'', owner:'you', type:types[0], amount:0, rate:0, minPay:0 };
+  if(pool==='creditcar') state.creditcars.push(row);
+  else state.debts.push(row);
+  renderDebtTable(pool);
   recalc();
 }
-function renderDebtTable(){
-  const el = document.getElementById('debtBody');
-  if(state.debts.length===0){
-    el.innerHTML = '<tr><td colspan="7"><div class="empty-hint">No debts added yet.</div></td></tr>';
+function renderDebtTable(pool){
+  pool = pool || 'school';
+  const list = pool==='creditcar' ? state.creditcars : state.debts;
+  const bodyId = pool==='creditcar' ? 'creditcarBody' : 'debtBody';
+  const types = pool==='creditcar' ? CREDITCAR_TYPES : SCHOOL_TYPES;
+  const emptyLabel = pool==='creditcar' ? 'No credit or car loans added yet.' : 'No school loans added yet.';
+  const el = document.getElementById(bodyId);
+  if(!el) return;
+  if(list.length===0){
+    el.innerHTML = `<tr><td colspan="7"><div class="empty-hint">${emptyLabel}</div></td></tr>`;
     return;
   }
-  el.innerHTML = state.debts.map(d=>`
+  el.innerHTML = list.map(d=>`
     <tr>
-      <td><input type="text" placeholder="e.g. Sallie Mae" value="${escapeHtml(d.name)}" oninput="updateDebtField('${d.id}','name',this.value)"></td>
+      <td><input type="text" placeholder="e.g. Sallie Mae" value="${escapeHtml(d.name)}" oninput="updateDebtField('${pool}','${d.id}','name',this.value)"></td>
       <td>
-        <select onchange="updateDebtField('${d.id}','owner',this.value)">
+        <select onchange="updateDebtField('${pool}','${d.id}','owner',this.value)">
           <option value="you" ${d.owner==='you'?'selected':''}>${escapeHtml(state.names.you)}</option>
           <option value="her" ${d.owner==='her'?'selected':''}>${escapeHtml(state.names.her)}</option>
         </select>
       </td>
       <td>
-        <select onchange="updateDebtField('${d.id}','type',this.value)">
-          ${DEBT_TYPES.map(t=>`<option ${d.type===t?'selected':''}>${t}</option>`).join('')}
+        <select onchange="updateDebtField('${pool}','${d.id}','type',this.value)">
+          ${types.map(t=>`<option ${d.type===t?'selected':''}>${t}</option>`).join('')}
         </select>
       </td>
-      <td><input type="number" placeholder="0" value="${d.amount||''}" oninput="updateDebtField('${d.id}','amount',this.value)"></td>
-      <td><input type="number" placeholder="0" step="0.1" value="${d.rate||''}" oninput="updateDebtField('${d.id}','rate',this.value)"></td>
-      <td><input type="number" placeholder="0" value="${d.minPay||''}" oninput="updateDebtField('${d.id}','minPay',this.value)"></td>
-      <td><button class="remove-btn" onclick="removeDebtRow('${d.id}')">×</button></td>
+      <td><input type="number" placeholder="0" value="${d.amount||''}" oninput="updateDebtField('${pool}','${d.id}','amount',this.value)"></td>
+      <td><input type="number" placeholder="0" step="0.1" value="${d.rate||''}" oninput="updateDebtField('${pool}','${d.id}','rate',this.value)"></td>
+      <td><input type="number" placeholder="0" value="${d.minPay||''}" oninput="updateDebtField('${pool}','${d.id}','minPay',this.value)"></td>
+      <td><button class="remove-btn" onclick="removeDebtRow('${pool}','${d.id}')">×</button></td>
     </tr>
   `).join('');
 }
-function updateDebtField(id, field, value){
-  const row = state.debts.find(d=>d.id===id);
+function updateDebtField(pool, id, field, value){
+  const list = pool==='creditcar' ? state.creditcars : state.debts;
+  const row = list.find(d=>d.id===id);
   if(row){
     if(field==='amount'||field==='rate'||field==='minPay') row[field]=parseFloat(value)||0;
     else row[field]=value;
   }
   recalc();
 }
-function removeDebtRow(id){
-  state.debts = state.debts.filter(d=>d.id!==id);
-  renderDebtTable();
+function removeDebtRow(pool, id){
+  if(pool==='creditcar') state.creditcars = state.creditcars.filter(d=>d.id!==id);
+  else state.debts = state.debts.filter(d=>d.id!==id);
+  renderDebtTable(pool);
   recalc();
 }
 
@@ -764,17 +807,35 @@ function recalc(){
   document.getElementById('moYouTotal').textContent = fmt(moYouSum);
   document.getElementById('moHerTotal').textContent = fmt(moHerSum);
 
-  const debtYouMin = state.debts.filter(d=>d.owner==='you').reduce((s,d)=>s+(d.minPay||0),0);
-  const debtHerMin = state.debts.filter(d=>d.owner==='her').reduce((s,d)=>s+(d.minPay||0),0);
-  const debtYouOwed = state.debts.filter(d=>d.owner==='you').reduce((s,d)=>s+(d.amount||0),0);
-  const debtHerOwed = state.debts.filter(d=>d.owner==='her').reduce((s,d)=>s+(d.amount||0),0);
-  const totalOwed = debtYouOwed + debtHerOwed;
-  const totalMin = debtYouMin + debtHerMin;
-  const weightedRate = totalOwed>0 ? state.debts.reduce((s,d)=>s+(d.amount||0)*(d.rate||0),0)/totalOwed : 0;
+  const allDebts = [...state.debts, ...(state.creditcars||[])];
 
-  document.getElementById('debtTotalOwed').textContent = fmt(totalOwed);
-  document.getElementById('debtTotalMin').textContent = fmt(totalMin);
-  document.getElementById('debtAvgRate').textContent = weightedRate.toFixed(2)+'%';
+  // School loans tab stats
+  const schoolYouMin = state.debts.filter(d=>d.owner==='you').reduce((s,d)=>s+(d.minPay||0),0);
+  const schoolHerMin = state.debts.filter(d=>d.owner==='her').reduce((s,d)=>s+(d.minPay||0),0);
+  const schoolOwed = state.debts.reduce((s,d)=>s+(d.amount||0),0);
+  const schoolMin = schoolYouMin + schoolHerMin;
+  const schoolRate = schoolOwed>0 ? state.debts.reduce((s,d)=>s+(d.amount||0)*(d.rate||0),0)/schoolOwed : 0;
+  document.getElementById('debtTotalOwed').textContent = fmt(schoolOwed);
+  document.getElementById('debtTotalMin').textContent = fmt(schoolMin);
+  document.getElementById('debtAvgRate').textContent = schoolRate.toFixed(2)+'%';
+
+  // Credit & car loans tab stats
+  const cc = state.creditcars||[];
+  const ccYouMin = cc.filter(d=>d.owner==='you').reduce((s,d)=>s+(d.minPay||0),0);
+  const ccHerMin = cc.filter(d=>d.owner==='her').reduce((s,d)=>s+(d.minPay||0),0);
+  const ccOwed = cc.reduce((s,d)=>s+(d.amount||0),0);
+  const ccMin = ccYouMin + ccHerMin;
+  const ccRate = ccOwed>0 ? cc.reduce((s,d)=>s+(d.amount||0)*(d.rate||0),0)/ccOwed : 0;
+  document.getElementById('creditcarTotalOwed').textContent = fmt(ccOwed);
+  document.getElementById('creditcarTotalMin').textContent = fmt(ccMin);
+  document.getElementById('creditcarAvgRate').textContent = ccRate.toFixed(2)+'%';
+
+  // Combined across both pools
+  const debtYouMin = schoolYouMin + ccYouMin;
+  const debtHerMin = schoolHerMin + ccHerMin;
+  const totalOwed = schoolOwed + ccOwed;
+  const totalMin = schoolMin + ccMin;
+  const weightedRate = totalOwed>0 ? allDebts.reduce((s,d)=>s+(d.amount||0)*(d.rate||0),0)/totalOwed : 0;
 
   const expYou = wkYouSum + moYouSum + debtYouMin;
   const expHer = wkHerSum + moHerSum + debtHerMin;
@@ -859,7 +920,8 @@ function render(){
   syncIncomeInputs();
   renderBillList('wkYou'); renderBillList('wkHer');
   renderBillList('moYou'); renderBillList('moHer');
-  renderDebtTable();
+  renderDebtTable('school');
+  renderDebtTable('creditcar');
   renderBudgetTable();
   recalc();
 }
