@@ -825,6 +825,18 @@ let activeTab = 'overview';
 
 function yr(){ return state.years[activeYear]; }
 
+// Editing a section in a year pushes that section's data forward into every
+// later year, but never touches earlier years. Later years stay overridable —
+// editing 2027 after this still only cascades into 2028/2029, not back into 2026.
+function cascadeForward(sectionKey){
+  const idx = YEARS.indexOf(activeYear);
+  if(idx===-1) return;
+  const src = yr()[sectionKey];
+  for(let i=idx+1;i<YEARS.length;i++){
+    state.years[YEARS[i]][sectionKey] = JSON.parse(JSON.stringify(src));
+  }
+}
+
 let rowIdCounter = 1;
 function newId(){ return 'r'+(rowIdCounter++)+'_'+Math.random().toString(36).slice(2,7); }
 
@@ -1113,12 +1125,14 @@ function addJobCalc(data){
   if(!yr().jobCalcs) yr().jobCalcs = [];
   const job = data || { id:newId(), owner:'you', name:'', rate:0, hours:40, filing:'single', state:'TX', ded401k:0, dedHsa:0, dedBen:0, dedOther:0 };
   yr().jobCalcs.push(job);
+  cascadeForward('jobCalcs');
   renderJobCalcs();
   scheduleSave();
 }
 
 function removeJobCalc(id){
   yr().jobCalcs = (yr().jobCalcs||[]).filter(j=>j.id!==id);
+  cascadeForward('jobCalcs');
   renderJobCalcs();
   scheduleSave();
 }
@@ -1128,6 +1142,7 @@ function updateJobField(id, field, value){
   if(!job) return;
   const numFields = ['rate','hours','ded401k','dedHsa','dedBen','dedOther'];
   job[field] = numFields.includes(field) ? (parseFloat(value)||0) : value;
+  cascadeForward('jobCalcs');
   refreshJobCardResults(id);
   scheduleSave();
 }
@@ -1238,6 +1253,7 @@ function onRefInput(who, suffix){
   r.hourly   = parseFloat(document.getElementById('ref'+cap(who)+'Hourly'+suffix).value)||0;
   r.otWage   = parseFloat(document.getElementById('ref'+cap(who)+'OtWage'+suffix).value)||0;
   updateRefTotal(who);
+  cascadeForward('annualRef');
   // mirror to the other tab's copy only — never touch the field being typed in
   const otherSuffix = REF_SUFFIXES.find(s=>s!==suffix);
   if(otherSuffix !== undefined) mirrorRefFields(who, otherSuffix);
@@ -1290,12 +1306,14 @@ function addRefBonus(who, suffix){
   const r = yr().annualRef[who];
   if(!r.bonuses) r.bonuses = [];
   r.bonuses.push({ id:newId(), name:'', amount:0 });
+  cascadeForward('annualRef');
   syncRefInputs();
   scheduleSave();
 }
 function removeRefBonus(who, id){
   const r = yr().annualRef[who];
   r.bonuses = (r.bonuses||[]).filter(b=>b.id!==id);
+  cascadeForward('annualRef');
   syncRefInputs();
   scheduleSave();
 }
@@ -1306,6 +1324,7 @@ function updateRefBonusField(who, id, field, value, suffix){
   if(!b) return;
   b[field] = field==='amount' ? (parseFloat(value)||0) : value;
   updateRefTotal(who);
+  cascadeForward('annualRef');
   // mirror to the other tab's copy only — never touch the field being typed in
   const otherSuffix = REF_SUFFIXES.find(s=>s!==suffix);
   if(otherSuffix !== undefined) renderRefBonusList(who, otherSuffix);
@@ -1338,6 +1357,7 @@ function onIncomeInput(){
   yr().income.youOther   = parseFloat(document.getElementById('incYouOther').value)||0;
   yr().income.herPrimary = parseFloat(document.getElementById('incHerPrimary').value)||0;
   yr().income.herOther   = parseFloat(document.getElementById('incHerOther').value)||0;
+  cascadeForward('income');
   recalc();
 }
 function syncIncomeInputs(){
@@ -1355,6 +1375,7 @@ function onMortgageInput(){
   m.principal = parseFloat(document.getElementById('mortPrincipal').value)||0;
   m.taxes     = parseFloat(document.getElementById('mortTaxes').value)||0;
   m.other     = parseFloat(document.getElementById('mortOther').value)||0;
+  cascadeForward('mortgage');
   recalc();
 }
 function syncMortgageInputs(){
@@ -1410,6 +1431,7 @@ function renderMortgageCalc(){
       <div class="job-result-row net"><span>Total monthly payment</span><span>${fmt(totalMonthly)}</span></div>
     `;
   }
+  cascadeForward('mortgage');
   scheduleSave();
 }
 
@@ -1425,6 +1447,7 @@ function applyMortgageCalc(){
   m.principal = Math.round(monthlyPI);
   m.taxes     = Math.round(monthlyTax);
   m.other     = Math.round(monthlyIns);
+  cascadeForward('mortgage');
   syncMortgageInputs();
   recalc();
 }
@@ -1435,6 +1458,7 @@ function addRow(prefix, data){
   const bucket = prefix.startsWith('wk') ? yr().weekly : yr().monthly;
   const row = data || { id:newId(), name:'', amount:0 };
   bucket[owner].push(row);
+  cascadeForward(prefix.startsWith('wk') ? 'weekly' : 'monthly');
   renderBillList(prefix);
   recalc();
 }
@@ -1458,12 +1482,14 @@ function updateBillField(prefix, id, field, value){
   const bucket = prefix.startsWith('wk') ? yr().weekly : yr().monthly;
   const row = bucket[owner].find(r=>r.id===id);
   if(row){ row[field] = field==='amount' ? parseFloat(value)||0 : value; }
+  cascadeForward(prefix.startsWith('wk') ? 'weekly' : 'monthly');
   recalc();
 }
 function removeBillRow(prefix, id){
   const owner = prefix.includes('You') ? 'you' : 'her';
   const bucket = prefix.startsWith('wk') ? yr().weekly : yr().monthly;
   bucket[owner] = bucket[owner].filter(r=>r.id!==id);
+  cascadeForward(prefix.startsWith('wk') ? 'weekly' : 'monthly');
   renderBillList(prefix);
   recalc();
 }
@@ -1474,6 +1500,7 @@ function addDebtRow(pool, data){
   const row = data || { id:newId(), name:'', owner:'you', type:types[0], amount:0, rate:0, minPay:0 };
   if(pool==='creditcar') yr().creditcars.push(row);
   else yr().debts.push(row);
+  cascadeForward(pool==='creditcar' ? 'creditcars' : 'debts');
   renderDebtTable(pool);
   recalc();
 }
@@ -1514,11 +1541,13 @@ function updateDebtField(pool, id, field, value){
     if(field==='amount'||field==='rate'||field==='minPay') row[field]=parseFloat(value)||0;
     else row[field]=value;
   }
+  cascadeForward(pool==='creditcar' ? 'creditcars' : 'debts');
   recalc();
 }
 function removeDebtRow(pool, id){
   if(pool==='creditcar') yr().creditcars = yr().creditcars.filter(d=>d.id!==id);
   else yr().debts = yr().debts.filter(d=>d.id!==id);
+  cascadeForward(pool==='creditcar' ? 'creditcars' : 'debts');
   renderDebtTable(pool);
   recalc();
 }
@@ -1555,16 +1584,19 @@ function renderBudgetTable(){
 function addBudgetItem(cat){
   yr().budgetItems[cat] = yr().budgetItems[cat] || [];
   yr().budgetItems[cat].push({id:newId(), name:'', projected:0, actual:0});
+  cascadeForward('budgetItems');
   renderBudgetTable();
   recalc();
 }
 function updateBudgetItem(cat, id, field, value){
   const item = (yr().budgetItems[cat]||[]).find(i=>i.id===id);
   if(item){ item[field] = (field==='projected'||field==='actual') ? (parseFloat(value)||0) : value; }
+  cascadeForward('budgetItems');
   recalc();
 }
 function removeBudgetItem(cat, id){
   yr().budgetItems[cat] = (yr().budgetItems[cat]||[]).filter(i=>i.id!==id);
+  cascadeForward('budgetItems');
   renderBudgetTable();
   recalc();
 }
