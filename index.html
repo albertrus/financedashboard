@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ledger — Combined Finance Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F3F1EB;
+    --bg-panel:#FBFAF7;
+    --ink:#1C1B19;
+    --ink-soft:#5B5850;
+    --line:#DDD8CC;
+    --line-strong:#C7C0AF;
+    --you:#1F6F6B;
+    --you-soft:#E4EFEE;
+    --her:#7A4869;
+    --her-soft:#F1E6ED;
+    --gold:#B98B2E;
+    --gold-soft:#F6EDD9;
+    --bad:#B04A3C;
+    --bad-soft:#F6E4E0;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:1080px;margin:0 auto;padding:28px 20px 80px;}
+
+  /* Header */
+  .masthead{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:16px;margin-bottom:6px;
+    flex-wrap:wrap;gap:12px;
+  }
+  .masthead h1{
+    font-family:'Fraunces',serif;
+    font-optical-sizing:auto;
+    font-weight:600;
+    font-size:34px;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .masthead .tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+  }
+  .save-status{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    text-align:right;
+  }
+  .save-status.saving{color:var(--gold);}
+  .save-status.saved{color:var(--you);}
+
+  /* Names bar */
+  .names-bar{
+    display:grid;grid-template-columns:1fr 1fr;gap:0;
+    margin:18px 0 24px;
+    border:1px solid var(--line-strong);
+    background:var(--bg-panel);
+  }
+  .name-field{padding:12px 16px;position:relative;}
+  .name-field:first-child{border-right:1px solid var(--line-strong);}
+  .name-field label{
+    font-family:'JetBrains Mono',monospace;font-size:10px;
+    text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-soft);
+    display:block;margin-bottom:4px;
+  }
+  .name-field input{
+    border:none;background:none;font-family:'Fraunces',serif;font-size:20px;
+    font-weight:600;width:100%;outline:none;color:var(--ink);
+  }
+  .name-field:first-child input{color:var(--you);}
+  .name-field:last-child input{color:var(--her);}
+
+  /* Tabs */
+  .tabs{
+    display:flex;gap:2px;margin-bottom:24px;
+    border-bottom:1px solid var(--line-strong);
+  }
+  .tab{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;text-transform:uppercase;letter-spacing:0.06em;
+    padding:11px 16px;cursor:pointer;color:var(--ink-soft);
+    background:none;border:none;border-bottom:2px solid transparent;
+    margin-bottom:-1px;
+    transition:color .15s;
+  }
+  .tab:hover{color:var(--ink);}
+  .tab.active{color:var(--ink);border-bottom-color:var(--ink);font-weight:600;}
+
+  .panel{display:none;}
+  .panel.active{display:block;animation:fadein .25s ease;}
+  @keyframes fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+  h2.section-title{
+    font-family:'Fraunces',serif;font-size:22px;font-weight:600;
+    margin:0 0 4px;
+  }
+  p.section-sub{
+    color:var(--ink-soft);font-size:13px;margin:0 0 20px;
+  }
+
+  /* Split entry layout: two columns for You / Her */
+  .split{
+    display:grid;grid-template-columns:1fr 1px 1fr;gap:0;
+    border:1px solid var(--line-strong);background:var(--bg-panel);
+  }
+  .split .col{padding:18px 20px;}
+  .split .divider{background:var(--line-strong);}
+  .col-head{
+    display:flex;align-items:center;gap:8px;margin-bottom:14px;
+  }
+  .swatch{width:9px;height:9px;border-radius:50%;}
+  .swatch.you{background:var(--you);}
+  .swatch.her{background:var(--her);}
+  .col-head span{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);}
+
+  .field-row{
+    display:flex;gap:8px;margin-bottom:8px;align-items:center;
+  }
+  .field-row input[type=text]{
+    flex:1.4;padding:8px 10px;border:1px solid var(--line);background:#fff;
+    font-family:'Inter',sans-serif;font-size:13px;border-radius:3px;
+  }
+  .field-row input[type=number]{
+    flex:1;padding:8px 10px;border:1px solid var(--line);background:#fff;
+    font-family:'JetBrains Mono',monospace;font-size:13px;border-radius:3px;
+    min-width:0;
+  }
+  .field-row select{
+    flex:0.9;padding:8px 6px;border:1px solid var(--line);background:#fff;
+    font-family:'Inter',sans-serif;font-size:12px;border-radius:3px;
+  }
+  .field-row input:focus,.field-row select:focus{outline:1.5px solid var(--ink);}
+  .remove-btn{
+    background:none;border:none;color:var(--bad);cursor:pointer;font-size:16px;
+    width:22px;flex-shrink:0;line-height:1;
+  }
+  .add-btn{
+    font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;
+    letter-spacing:0.05em;background:none;border:1px dashed var(--line-strong);
+    color:var(--ink-soft);padding:8px 12px;cursor:pointer;width:100%;margin-top:6px;
+    border-radius:3px;
+  }
+  .add-btn:hover{border-color:var(--ink);color:var(--ink);}
+
+  .col-total{
+    margin-top:14px;padding-top:12px;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+  }
+  .col-total b{font-size:16px;}
+  .col:first-child .col-total b{color:var(--you);}
+  .col:last-child .col-total b{color:var(--her);}
+
+  /* single income row simpler */
+  .income-row{display:flex;align-items:center;gap:10px;}
+  .income-row label{font-size:12px;color:var(--ink-soft);width:110px;flex-shrink:0;}
+  .income-row input{
+    flex:1;padding:9px 10px;border:1px solid var(--line);background:#fff;
+    font-family:'JetBrains Mono',monospace;font-size:14px;border-radius:3px;
+  }
+
+  /* Debt table */
+  .debt-table{width:100%;border-collapse:collapse;font-size:13px;}
+  .debt-table th{
+    text-align:left;font-family:'JetBrains Mono',monospace;font-size:10px;
+    text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-soft);
+    padding:8px 8px;border-bottom:1px solid var(--line-strong);
+  }
+  .debt-table td{padding:6px 8px;border-bottom:1px solid var(--line);}
+  .debt-table input, .debt-table select{
+    width:100%;padding:6px 7px;border:1px solid var(--line);background:#fff;
+    font-family:'Inter',sans-serif;font-size:12.5px;border-radius:3px;
+  }
+  .debt-table input[type=number]{font-family:'JetBrains Mono',monospace;}
+  .owner-tag-you{color:var(--you);font-weight:600;}
+  .owner-tag-her{color:var(--her);font-weight:600;}
+
+  /* Overview */
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:24px;}
+  .stat-card{
+    background:var(--bg-panel);border:1px solid var(--line-strong);padding:16px 18px;
+  }
+  .stat-card .label{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);margin-bottom:8px;}
+  .stat-card .value{font-family:'Fraunces',serif;font-size:28px;font-weight:600;}
+  .stat-card .value.good{color:var(--you);}
+  .stat-card .value.bad{color:var(--bad);}
+  .stat-card .sub{font-size:12px;color:var(--ink-soft);margin-top:4px;}
+
+  .compare-table{width:100%;border-collapse:collapse;margin-bottom:28px;}
+  .compare-table th{
+    font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;
+    letter-spacing:0.05em;text-align:right;padding:10px 12px;color:var(--ink-soft);
+    border-bottom:2px solid var(--ink);
+  }
+  .compare-table th:first-child{text-align:left;}
+  .compare-table th.th-you{color:var(--you);}
+  .compare-table th.th-her{color:var(--her);}
+  .compare-table th.th-combo{color:var(--gold);}
+  .compare-table td{padding:9px 12px;text-align:right;border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:13px;}
+  .compare-table td:first-child{text-align:left;font-family:'Inter',sans-serif;color:var(--ink);}
+  .compare-table tr.total-row td{font-weight:700;border-top:1.5px solid var(--ink);border-bottom:none;font-size:14.5px;padding-top:12px;}
+
+  .confluence{
+    text-align:center;margin:34px 0 10px;position:relative;
+  }
+  .confluence-line{height:1px;background:var(--line-strong);position:relative;margin:0 auto;max-width:600px;}
+  .confluence-label{
+    font-family:'Fraunces',serif;font-style:italic;font-size:15px;color:var(--ink-soft);
+    background:var(--bg);display:inline-block;padding:0 16px;position:relative;top:-11px;
+  }
+
+  /* Monthly budget table */
+  .budget-table{width:100%;border-collapse:collapse;}
+  .budget-table th{
+    font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;
+    letter-spacing:0.05em;color:var(--ink-soft);text-align:right;padding:8px 10px;
+    border-bottom:2px solid var(--ink);
+  }
+  .budget-table th:first-child{text-align:left;}
+  .budget-table td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:right;}
+  .budget-table td:first-child{text-align:left;font-weight:600;font-family:'Fraunces',serif;font-size:15px;}
+  .budget-table input{
+    width:90px;padding:6px 8px;border:1px solid var(--line);background:#fff;
+    font-family:'JetBrains Mono',monospace;font-size:13px;text-align:right;border-radius:3px;
+  }
+  .diff-pos{color:var(--you);font-family:'JetBrains Mono',monospace;font-weight:600;}
+  .diff-neg{color:var(--bad);font-family:'JetBrains Mono',monospace;font-weight:600;}
+  .budget-table tr.total-row td{font-weight:700;border-top:1.5px solid var(--ink);padding-top:11px;}
+  .budget-table tr.total-row td:first-child{font-family:'Inter',sans-serif;}
+
+  .empty-hint{color:var(--ink-soft);font-size:12px;font-style:italic;padding:6px 2px;}
+
+  /* Budget category blocks */
+  .cat-block{
+    border:1px solid var(--line-strong);background:var(--bg-panel);margin-bottom:16px;
+  }
+  .cat-head{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:12px 16px;border-bottom:1px solid var(--line);
+  }
+  .cat-head h3{
+    font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin:0;
+  }
+  .cat-head .cat-subtotal{
+    font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-soft);
+  }
+  .cat-body{padding:12px 16px;}
+  .cat-item-row{
+    display:grid;grid-template-columns:1.6fr 0.85fr 0.85fr 0.7fr 22px;
+    gap:8px;align-items:center;margin-bottom:8px;
+  }
+  .cat-item-row input[type=text]{
+    padding:7px 9px;border:1px solid var(--line);background:#fff;border-radius:3px;
+    font-family:'Inter',sans-serif;font-size:13px;min-width:0;
+  }
+  .cat-item-row input[type=number]{
+    padding:7px 9px;border:1px solid var(--line);background:#fff;border-radius:3px;
+    font-family:'JetBrains Mono',monospace;font-size:13px;text-align:right;min-width:0;
+  }
+  .cat-item-row .item-diff{
+    font-family:'JetBrains Mono',monospace;font-size:12.5px;text-align:right;padding-right:2px;
+  }
+  .cat-col-labels{
+    display:grid;grid-template-columns:1.6fr 0.85fr 0.85fr 0.7fr 22px;gap:8px;
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;
+    letter-spacing:0.05em;color:var(--ink-soft);margin-bottom:6px;
+  }
+  .cat-col-labels span:not(:first-child){text-align:right;}
+
+  @media(max-width:640px){
+    .split{grid-template-columns:1fr;}
+    .split .divider{display:none;}
+    .split .col:first-child{border-bottom:1px solid var(--line-strong);}
+    .stat-grid{grid-template-columns:1fr;}
+    .compare-table{font-size:11px;}
+    .compare-table th, .compare-table td{padding:7px 6px;}
+    .masthead h1{font-size:26px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="masthead">
+    <div>
+      <h1>Ledger</h1>
+      <div class="tag">Pre-marriage finance planner</div>
+    </div>
+    <div class="save-status" id="saveStatus">loading…</div>
+  </div>
+
+  <div class="names-bar">
+    <div class="name-field">
+      <label>Partner A</label>
+      <input type="text" id="nameYou" value="You" oninput="updateNames()">
+    </div>
+    <div class="name-field">
+      <label>Partner B</label>
+      <input type="text" id="nameHer" value="Her" oninput="updateNames()">
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="overview">Overview</button>
+    <button class="tab" data-tab="income">Income</button>
+    <button class="tab" data-tab="weekly">Weekly Bills</button>
+    <button class="tab" data-tab="monthly">Monthly Bills</button>
+    <button class="tab" data-tab="budget">Monthly Budget</button>
+    <button class="tab" data-tab="debt">Debt & Loans</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="panel active" id="panel-overview">
+    <h2 class="section-title">The full picture</h2>
+    <p class="section-sub">Everything you enter across the other tabs rolls up here automatically.</p>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="label">Combined monthly income</div>
+        <div class="value" id="ovIncome">$0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Combined monthly expenses</div>
+        <div class="value" id="ovExpenses">$0</div>
+        <div class="sub" id="ovExpensesSub">bills + minimum debt payments</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Combined monthly savings</div>
+        <div class="value" id="ovSavings">$0</div>
+        <div class="sub" id="ovSavingsSub"></div>
+      </div>
+    </div>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>&nbsp;</th>
+          <th class="th-you" id="thYou">You</th>
+          <th class="th-her" id="thHer">Her</th>
+          <th class="th-combo">Combined</th>
+        </tr>
+      </thead>
+      <tbody id="compareBody"></tbody>
+    </table>
+
+    <div class="confluence">
+      <div class="confluence-line"></div>
+      <span class="confluence-label">where your two columns meet</span>
+    </div>
+
+    <div class="stat-grid" style="grid-template-columns:1fr 1fr;">
+      <div class="stat-card">
+        <div class="label">Total debt owed (combined)</div>
+        <div class="value" id="ovDebt">$0</div>
+        <div class="sub" id="ovDebtSub"></div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Budget health</div>
+        <div class="value" id="ovHealth">—</div>
+        <div class="sub" id="ovHealthSub"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INCOME -->
+  <div class="panel" id="panel-income">
+    <h2 class="section-title">Monthly income</h2>
+    <p class="section-sub">Take-home pay, after taxes. Add both of your primary and any side income.</p>
+    <div class="split">
+      <div class="col">
+        <div class="col-head"><span class="swatch you"></span><span id="incLabelYou">You</span></div>
+        <div class="income-row"><label>Primary job</label><input type="number" id="incYouPrimary" placeholder="0" oninput="recalc()"></div>
+        <div class="income-row" style="margin-top:8px;"><label>Other income</label><input type="number" id="incYouOther" placeholder="0" oninput="recalc()"></div>
+        <div class="col-total"><span>Monthly total</span><b id="incYouTotal">$0</b></div>
+      </div>
+      <div class="divider"></div>
+      <div class="col">
+        <div class="col-head"><span class="swatch her"></span><span id="incLabelHer">Her</span></div>
+        <div class="income-row"><label>Primary job</label><input type="number" id="incHerPrimary" placeholder="0" oninput="recalc()"></div>
+        <div class="income-row" style="margin-top:8px;"><label>Other income</label><input type="number" id="incHerOther" placeholder="0" oninput="recalc()"></div>
+        <div class="col-total"><span>Monthly total</span><b id="incHerTotal">$0</b></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEEKLY BILLS -->
+  <div class="panel" id="panel-weekly">
+    <h2 class="section-title">Weekly bills</h2>
+    <p class="section-sub">Things you pay weekly (groceries, gas, etc). We'll convert these to a monthly figure (×4.33) for the overview.</p>
+    <div class="split">
+      <div class="col">
+        <div class="col-head"><span class="swatch you"></span><span id="wkLabelYou">You</span></div>
+        <div id="wkYouList"></div>
+        <button class="add-btn" onclick="addRow('wkYou')">+ Add weekly bill</button>
+        <div class="col-total"><span>≈ Monthly</span><b id="wkYouTotal">$0</b></div>
+      </div>
+      <div class="divider"></div>
+      <div class="col">
+        <div class="col-head"><span class="swatch her"></span><span id="wkLabelHer">Her</span></div>
+        <div id="wkHerList"></div>
+        <button class="add-btn" onclick="addRow('wkHer')">+ Add weekly bill</button>
+        <div class="col-total"><span>≈ Monthly</span><b id="wkHerTotal">$0</b></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MONTHLY BILLS -->
+  <div class="panel" id="panel-monthly">
+    <h2 class="section-title">Monthly bills</h2>
+    <p class="section-sub">Rent/mortgage, utilities, insurance, subscriptions, anything billed monthly.</p>
+    <div class="split">
+      <div class="col">
+        <div class="col-head"><span class="swatch you"></span><span id="moLabelYou">You</span></div>
+        <div id="moYouList"></div>
+        <button class="add-btn" onclick="addRow('moYou')">+ Add monthly bill</button>
+        <div class="col-total"><span>Monthly total</span><b id="moYouTotal">$0</b></div>
+      </div>
+      <div class="divider"></div>
+      <div class="col">
+        <div class="col-head"><span class="swatch her"></span><span id="moLabelHer">Her</span></div>
+        <div id="moHerList"></div>
+        <button class="add-btn" onclick="addRow('moHer')">+ Add monthly bill</button>
+        <div class="col-total"><span>Monthly total</span><b id="moHerTotal">$0</b></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MONTHLY BUDGET (projected/actual/diff) -->
+  <div class="panel" id="panel-budget">
+    <h2 class="section-title">Monthly budget: projected vs. actual</h2>
+    <p class="section-sub">Add each bill or purchase under its category, set what you expect to spend, then log what actually happened.</p>
+    <div id="budgetCategories"></div>
+
+    <table class="budget-table" style="margin-top:8px;">
+      <tbody>
+        <tr class="total-row">
+          <td>Grand total</td>
+          <td id="budTotalProj">$0</td>
+          <td id="budTotalAct">$0</td>
+          <td id="budTotalDiff">$0</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DEBT -->
+  <div class="panel" id="panel-debt">
+    <h2 class="section-title">Debt & loans</h2>
+    <p class="section-sub">Student loans, car loans, credit cards — anything owed. Feeds your combined debt total.</p>
+    <table class="debt-table">
+      <thead>
+        <tr><th style="width:26%">Name</th><th style="width:14%">Owner</th><th style="width:14%">Type</th><th style="width:15%">Amount owed</th><th style="width:14%">Interest rate</th><th style="width:15%">Min. payment</th><th></th></tr>
+      </thead>
+      <tbody id="debtBody"></tbody>
+    </table>
+    <button class="add-btn" onclick="addDebtRow()">+ Add loan / debt</button>
+
+    <div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:24px;">
+      <div class="stat-card">
+        <div class="label">Total owed</div>
+        <div class="value" id="debtTotalOwed">$0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Total min. monthly payments</div>
+        <div class="value" id="debtTotalMin">$0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Weighted avg. interest</div>
+        <div class="value" id="debtAvgRate">0%</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const CATEGORIES = ["Home","Transportation","Daily Living","Entertainment","Health","Subscriptions"];
+const DEBT_TYPES = ["Student Loan","Auto Loan","Credit Card","Personal Loan","Other"];
+
+let state = {
+  names: { you:"You", her:"Her" },
+  income: { youPrimary:0, youOther:0, herPrimary:0, herOther:0 },
+  weekly: { you:[], her:[] },
+  monthly: { you:[], her:[] },
+  budgetItems: Object.fromEntries(CATEGORIES.map(c=>[c,[]])),
+  debts: []
+};
+
+let rowIdCounter = 1;
+function newId(){ return 'r'+(rowIdCounter++)+'_'+Math.random().toString(36).slice(2,7); }
+
+// ---------- STORAGE ----------
+const STORAGE_KEY = 'ledger-data';
+let saveTimer = null;
+function markSaving(){
+  const el = document.getElementById('saveStatus');
+  el.textContent = 'saving…'; el.className='save-status saving';
+}
+function markSaved(){
+  const el = document.getElementById('saveStatus');
+  el.textContent = 'saved'; el.className='save-status saved';
+}
+function scheduleSave(){
+  markSaving();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      markSaved();
+    }catch(e){
+      const el = document.getElementById('saveStatus');
+      el.textContent = 'save failed'; el.className='save-status';
+      console.error('Storage error', e);
+    }
+  }, 400);
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const loaded = JSON.parse(raw);
+      state = Object.assign(state, loaded);
+      // Migrate old flat budget format (one row per category) to new per-category item lists
+      if(state.budget && !state.budgetItems){
+        state.budgetItems = Object.fromEntries(CATEGORIES.map(c=>[c,[]]));
+        state.budget.forEach(b=>{
+          if(b.category && (b.projected||b.actual)){
+            state.budgetItems[b.category] = state.budgetItems[b.category] || [];
+            state.budgetItems[b.category].push({id:newId(), name:'General', projected:b.projected||0, actual:b.actual||0});
+          }
+        });
+        delete state.budget;
+      }
+      if(!state.budgetItems){
+        state.budgetItems = Object.fromEntries(CATEGORIES.map(c=>[c,[]]));
+      }
+      CATEGORIES.forEach(c=>{ if(!state.budgetItems[c]) state.budgetItems[c] = []; });
+    }
+  }catch(e){
+    console.log('No existing data yet, starting fresh.');
+  }
+  render();
+  markSaved();
+}
+
+// ---------- TABS ----------
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  });
+});
+
+// ---------- NAMES ----------
+function updateNames(){
+  state.names.you = document.getElementById('nameYou').value || 'You';
+  state.names.her = document.getElementById('nameHer').value || 'Her';
+  applyNameLabels();
+  recalc();
+}
+function applyNameLabels(){
+  const you = state.names.you, her = state.names.her;
+  ['incLabelYou','wkLabelYou','moLabelYou'].forEach(id=>document.getElementById(id).textContent=you);
+  ['incLabelHer','wkLabelHer','moLabelHer'].forEach(id=>document.getElementById(id).textContent=her);
+  document.getElementById('thYou').textContent = you;
+  document.getElementById('thHer').textContent = her;
+}
+
+// ---------- ROW BUILDERS (weekly/monthly bills) ----------
+function addRow(prefix, data){
+  const owner = prefix.includes('You') ? 'you' : 'her';
+  const bucket = prefix.startsWith('wk') ? state.weekly : state.monthly;
+  const row = data || { id:newId(), name:'', amount:0 };
+  bucket[owner].push(row);
+  renderBillList(prefix);
+  recalc();
+}
+function renderBillList(prefix){
+  const owner = prefix.includes('You') ? 'you' : 'her';
+  const bucket = prefix.startsWith('wk') ? state.weekly : state.monthly;
+  const list = bucket[owner];
+  const el = document.getElementById(prefix+'List');
+  if(list.length===0){
+    el.innerHTML = '<div class="empty-hint">Nothing added yet.</div>';
+    return;
+  }
+  el.innerHTML = list.map(r=>`
+    <div class="field-row">
+      <input type="text" placeholder="e.g. Groceries" value="${escapeHtml(r.name)}" oninput="updateBillField('${prefix}','${r.id}','name',this.value)">
+      <input type="number" placeholder="0" value="${r.amount||''}" oninput="updateBillField('${prefix}','${r.id}','amount',this.value)">
+      <button class="remove-btn" onclick="removeBillRow('${prefix}','${r.id}')">×</button>
+    </div>
+  `).join('');
+}
+function updateBillField(prefix, id, field, value){
+  const owner = prefix.includes('You') ? 'you' : 'her';
+  const bucket = prefix.startsWith('wk') ? state.weekly : state.monthly;
+  const row = bucket[owner].find(r=>r.id===id);
+  if(row){ row[field] = field==='amount' ? parseFloat(value)||0 : value; }
+  recalc();
+}
+function removeBillRow(prefix, id){
+  const owner = prefix.includes('You') ? 'you' : 'her';
+  const bucket = prefix.startsWith('wk') ? state.weekly : state.monthly;
+  bucket[owner] = bucket[owner].filter(r=>r.id!==id);
+  renderBillList(prefix);
+  recalc();
+}
+
+// ---------- DEBT ----------
+function addDebtRow(data){
+  const row = data || { id:newId(), name:'', owner:'you', type:DEBT_TYPES[0], amount:0, rate:0, minPay:0 };
+  state.debts.push(row);
+  renderDebtTable();
+  recalc();
+}
+function renderDebtTable(){
+  const el = document.getElementById('debtBody');
+  if(state.debts.length===0){
+    el.innerHTML = '<tr><td colspan="7"><div class="empty-hint">No debts added yet.</div></td></tr>';
+    return;
+  }
+  el.innerHTML = state.debts.map(d=>`
+    <tr>
+      <td><input type="text" placeholder="e.g. Sallie Mae" value="${escapeHtml(d.name)}" oninput="updateDebtField('${d.id}','name',this.value)"></td>
+      <td>
+        <select onchange="updateDebtField('${d.id}','owner',this.value)">
+          <option value="you" ${d.owner==='you'?'selected':''}>${escapeHtml(state.names.you)}</option>
+          <option value="her" ${d.owner==='her'?'selected':''}>${escapeHtml(state.names.her)}</option>
+        </select>
+      </td>
+      <td>
+        <select onchange="updateDebtField('${d.id}','type',this.value)">
+          ${DEBT_TYPES.map(t=>`<option ${d.type===t?'selected':''}>${t}</option>`).join('')}
+        </select>
+      </td>
+      <td><input type="number" placeholder="0" value="${d.amount||''}" oninput="updateDebtField('${d.id}','amount',this.value)"></td>
+      <td><input type="number" placeholder="0" step="0.1" value="${d.rate||''}" oninput="updateDebtField('${d.id}','rate',this.value)"></td>
+      <td><input type="number" placeholder="0" value="${d.minPay||''}" oninput="updateDebtField('${d.id}','minPay',this.value)"></td>
+      <td><button class="remove-btn" onclick="removeDebtRow('${d.id}')">×</button></td>
+    </tr>
+  `).join('');
+}
+function updateDebtField(id, field, value){
+  const row = state.debts.find(d=>d.id===id);
+  if(row){
+    if(field==='amount'||field==='rate'||field==='minPay') row[field]=parseFloat(value)||0;
+    else row[field]=value;
+  }
+  recalc();
+}
+function removeDebtRow(id){
+  state.debts = state.debts.filter(d=>d.id!==id);
+  renderDebtTable();
+  recalc();
+}
+
+// ---------- BUDGET CATEGORY BLOCKS ----------
+function renderBudgetTable(){
+  const el = document.getElementById('budgetCategories');
+  el.innerHTML = CATEGORIES.map(cat=>{
+    const items = state.budgetItems[cat] || [];
+    const rows = items.length ? items.map(it=>`
+      <div class="cat-item-row" data-item="${it.id}">
+        <input type="text" placeholder="e.g. Groceries" value="${escapeHtml(it.name)}" oninput="updateBudgetItem('${cat}','${it.id}','name',this.value)">
+        <input type="number" placeholder="0" value="${it.projected||''}" oninput="updateBudgetItem('${cat}','${it.id}','projected',this.value)">
+        <input type="number" placeholder="0" value="${it.actual||''}" oninput="updateBudgetItem('${cat}','${it.id}','actual',this.value)">
+        <span class="item-diff" id="itemDiff_${it.id}">$0</span>
+        <button class="remove-btn" onclick="removeBudgetItem('${cat}','${it.id}')">×</button>
+      </div>
+    `).join('') : '<div class="empty-hint">Nothing added yet.</div>';
+    return `
+      <div class="cat-block">
+        <div class="cat-head">
+          <h3>${cat}</h3>
+          <span class="cat-subtotal" id="catSub_${cat.replace(/\s+/g,'')}">Proj $0 · Act $0</span>
+        </div>
+        <div class="cat-body">
+          ${items.length ? `<div class="cat-col-labels"><span>Item</span><span>Projected</span><span>Actual</span><span>Diff</span><span></span></div>` : ''}
+          ${rows}
+          <button class="add-btn" onclick="addBudgetItem('${cat}')">+ Add item to ${cat}</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+function addBudgetItem(cat){
+  state.budgetItems[cat] = state.budgetItems[cat] || [];
+  state.budgetItems[cat].push({id:newId(), name:'', projected:0, actual:0});
+  renderBudgetTable();
+  recalc();
+}
+function updateBudgetItem(cat, id, field, value){
+  const item = (state.budgetItems[cat]||[]).find(i=>i.id===id);
+  if(item){
+    item[field] = (field==='projected'||field==='actual') ? (parseFloat(value)||0) : value;
+  }
+  recalc();
+}
+function removeBudgetItem(cat, id){
+  state.budgetItems[cat] = (state.budgetItems[cat]||[]).filter(i=>i.id!==id);
+  renderBudgetTable();
+  recalc();
+}
+
+// ---------- INCOME FIELDS ----------
+function syncIncomeInputs(){
+  document.getElementById('incYouPrimary').value = state.income.youPrimary || '';
+  document.getElementById('incYouOther').value = state.income.youOther || '';
+  document.getElementById('incHerPrimary').value = state.income.herPrimary || '';
+  document.getElementById('incHerOther').value = state.income.herOther || '';
+}
+['incYouPrimary','incYouOther','incHerPrimary','incHerOther'].forEach(id=>{
+  document.addEventListener('DOMContentLoaded', ()=>{
+    document.getElementById(id).addEventListener('input', e=>{
+      const map = {incYouPrimary:'youPrimary',incYouOther:'youOther',incHerPrimary:'herPrimary',incHerOther:'herOther'};
+      state.income[map[id]] = parseFloat(e.target.value)||0;
+      recalc();
+    });
+  });
+});
+
+// ---------- CALC + RENDER ----------
+function fmt(n){
+  const v = Math.round(n||0);
+  return (v<0?'-$':'$') + Math.abs(v).toLocaleString();
+}
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function recalc(){
+  const you = state.names.you, her = state.names.her;
+
+  const incYou = (state.income.youPrimary||0) + (state.income.youOther||0);
+  const incHer = (state.income.herPrimary||0) + (state.income.herOther||0);
+  document.getElementById('incYouTotal').textContent = fmt(incYou);
+  document.getElementById('incHerTotal').textContent = fmt(incHer);
+
+  const wkYouSum = state.weekly.you.reduce((s,r)=>s+(r.amount||0),0) * 4.33;
+  const wkHerSum = state.weekly.her.reduce((s,r)=>s+(r.amount||0),0) * 4.33;
+  document.getElementById('wkYouTotal').textContent = fmt(wkYouSum);
+  document.getElementById('wkHerTotal').textContent = fmt(wkHerSum);
+
+  const moYouSum = state.monthly.you.reduce((s,r)=>s+(r.amount||0),0);
+  const moHerSum = state.monthly.her.reduce((s,r)=>s+(r.amount||0),0);
+  document.getElementById('moYouTotal').textContent = fmt(moYouSum);
+  document.getElementById('moHerTotal').textContent = fmt(moHerSum);
+
+  const debtYouMin = state.debts.filter(d=>d.owner==='you').reduce((s,d)=>s+(d.minPay||0),0);
+  const debtHerMin = state.debts.filter(d=>d.owner==='her').reduce((s,d)=>s+(d.minPay||0),0);
+  const debtYouOwed = state.debts.filter(d=>d.owner==='you').reduce((s,d)=>s+(d.amount||0),0);
+  const debtHerOwed = state.debts.filter(d=>d.owner==='her').reduce((s,d)=>s+(d.amount||0),0);
+  const totalOwed = debtYouOwed + debtHerOwed;
+  const totalMin = debtYouMin + debtHerMin;
+  const weightedRate = totalOwed>0 ? state.debts.reduce((s,d)=>s+(d.amount||0)*(d.rate||0),0)/totalOwed : 0;
+
+  document.getElementById('debtTotalOwed').textContent = fmt(totalOwed);
+  document.getElementById('debtTotalMin').textContent = fmt(totalMin);
+  document.getElementById('debtAvgRate').textContent = weightedRate.toFixed(2)+'%';
+
+  const expYou = wkYouSum + moYouSum + debtYouMin;
+  const expHer = wkHerSum + moHerSum + debtHerMin;
+  const savYou = incYou - expYou;
+  const savHer = incHer - expHer;
+
+  // Compare table
+  const rows = [
+    ['Monthly income', incYou, incHer],
+    ['Weekly bills (monthly)', wkYouSum, wkHerSum],
+    ['Monthly bills', moYouSum, moHerSum],
+    ['Debt minimum payments', debtYouMin, debtHerMin],
+  ];
+  document.getElementById('compareBody').innerHTML = rows.map(r=>`
+    <tr><td>${r[0]}</td><td>${fmt(r[1])}</td><td>${fmt(r[2])}</td><td>${fmt(r[1]+r[2])}</td></tr>
+  `).join('') + `
+    <tr class="total-row"><td>Net savings</td><td>${fmt(savYou)}</td><td>${fmt(savHer)}</td><td>${fmt(savYou+savHer)}</td></tr>
+  `;
+
+  // Overview stats
+  document.getElementById('ovIncome').textContent = fmt(incYou+incHer);
+  document.getElementById('ovExpenses').textContent = fmt(expYou+expHer);
+  const totalSavings = savYou+savHer;
+  const savEl = document.getElementById('ovSavings');
+  savEl.textContent = fmt(totalSavings);
+  savEl.className = 'value ' + (totalSavings>=0 ? 'good':'bad');
+  const totalIncome = incYou+incHer;
+  const savRate = totalIncome>0 ? (totalSavings/totalIncome*100) : 0;
+  document.getElementById('ovSavingsSub').textContent = totalIncome>0 ? `${savRate.toFixed(0)}% of combined income` : 'Add income to see rate';
+
+  document.getElementById('ovDebt').textContent = fmt(totalOwed);
+  document.getElementById('ovDebtSub').textContent = totalMin>0 ? `${fmt(totalMin)}/mo minimum · ${weightedRate.toFixed(1)}% avg rate` : 'No debt entered';
+
+  const healthEl = document.getElementById('ovHealth');
+  const healthSub = document.getElementById('ovHealthSub');
+  if(totalIncome===0){
+    healthEl.textContent='—'; healthEl.className='value';
+    healthSub.textContent='Add income and expenses to see this';
+  } else if(savRate>=20){
+    healthEl.textContent='Strong'; healthEl.className='value good';
+    healthSub.textContent='Saving 20%+ of combined income';
+  } else if(savRate>=0){
+    healthEl.textContent='Tight'; healthEl.className='value';
+    healthSub.textContent='Positive, but under a 20% savings rate';
+  } else {
+    healthEl.textContent='Over budget'; healthEl.className='value bad';
+    healthSub.textContent='Combined expenses exceed combined income';
+  }
+
+  // Budget category items: per-item diff, per-category subtotal, grand total
+  let totProj=0, totAct=0;
+  CATEGORIES.forEach(cat=>{
+    const items = state.budgetItems[cat] || [];
+    let catProj=0, catAct=0;
+    items.forEach(it=>{
+      const diff = (it.projected||0)-(it.actual||0);
+      catProj += it.projected||0; catAct += it.actual||0;
+      const cell = document.getElementById('itemDiff_'+it.id);
+      if(cell){
+        cell.textContent = fmt(diff);
+        cell.className = 'item-diff ' + (diff>=0?'diff-pos':'diff-neg');
+      }
+    });
+    totProj += catProj; totAct += catAct;
+    const subEl = document.getElementById('catSub_'+cat.replace(/\s+/g,''));
+    if(subEl) subEl.textContent = `Proj ${fmt(catProj)} · Act ${fmt(catAct)}`;
+  });
+  document.getElementById('budTotalProj').textContent = fmt(totProj);
+  document.getElementById('budTotalAct').textContent = fmt(totAct);
+  const totDiff = totProj-totAct;
+  const totDiffEl = document.getElementById('budTotalDiff');
+  totDiffEl.textContent = fmt(totDiff);
+  totDiffEl.className = totDiff>=0 ? 'diff-pos':'diff-neg';
+
+  scheduleSave();
+}
+
+function render(){
+  document.getElementById('nameYou').value = state.names.you;
+  document.getElementById('nameHer').value = state.names.her;
+  applyNameLabels();
+  syncIncomeInputs();
+  renderBillList('wkYou'); renderBillList('wkHer');
+  renderBillList('moYou'); renderBillList('moHer');
+  renderDebtTable();
+  renderBudgetTable();
+  recalc();
+}
+
+loadState();
+</script>
+</body>
+</html>
