@@ -450,6 +450,7 @@
         <button class="tab" data-tab="budget">Monthly Budget</button>
         <button class="tab" data-tab="debt">School Loans</button>
         <button class="tab" data-tab="creditcar">Credit & Car Loans</button>
+        <button class="tab" data-tab="mortgage">Mortgage</button>
       </div>
 
       <!-- OVERVIEW -->
@@ -708,6 +709,82 @@
         </div>
       </div>
 
+      <!-- MORTGAGE -->
+      <div class="panel" id="panel-mortgage">
+        <h2 class="section-title">Mortgage</h2>
+        <p class="section-sub">Track your current mortgage payment breakdown. Feeds into combined monthly expenses on the Overview.</p>
+
+        <div class="split">
+          <div class="col" style="grid-column:1/-1;">
+            <div class="col-head"><span class="swatch" style="background:var(--gold);"></span><span>Current mortgage</span></div>
+            <div class="income-row"><label>Total mortgage</label><input type="number" id="mortTotal" placeholder="0" oninput="onMortgageInput()"></div>
+            <div class="income-row" style="margin-top:8px;"><label>Principal payment</label><input type="number" id="mortPrincipal" placeholder="0" oninput="onMortgageInput()"></div>
+            <div class="income-row" style="margin-top:8px;"><label>Taxes</label><input type="number" id="mortTaxes" placeholder="0" oninput="onMortgageInput()"></div>
+            <div class="income-row" style="margin-top:8px;"><label>Other cost</label><input type="number" id="mortOther" placeholder="0" oninput="onMortgageInput()"></div>
+            <div class="col-total"><span>Total monthly payment</span><b id="mortMonthlyTotal" style="color:var(--gold);">$0</b></div>
+          </div>
+        </div>
+
+        <!-- REFERENCE: full picture -->
+        <div class="job-calc-section" style="margin-top:28px;">
+          <div class="job-calc-header">
+            <div>
+              <h3>Full picture reference</h3>
+              <div class="jc-sub">Current combined numbers, for comparison while shopping mortgages</div>
+            </div>
+          </div>
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="label">Combined monthly income</div>
+              <div class="value" id="mortRefIncome">$0</div>
+            </div>
+            <div class="stat-card">
+              <div class="label">Combined monthly expenses</div>
+              <div class="value" id="mortRefExpenses">$0</div>
+              <div class="sub">includes current mortgage payment above</div>
+            </div>
+            <div class="stat-card">
+              <div class="label">Combined monthly savings</div>
+              <div class="value" id="mortRefSavings">$0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MORTGAGE CALCULATOR -->
+        <div class="job-calc-section">
+          <div class="job-calc-header">
+            <div>
+              <h3>Mortgage calculator</h3>
+              <div class="jc-sub">See what a different mortgage would look like</div>
+            </div>
+          </div>
+          <div class="job-cards" style="grid-template-columns:1fr;">
+            <div class="job-card">
+              <label>Home price</label>
+              <input type="number" id="mcPrice" placeholder="0" oninput="renderMortgageCalc()">
+              <label>Down payment</label>
+              <input type="number" id="mcDown" placeholder="0" oninput="renderMortgageCalc()">
+              <label>Interest rate (%)</label>
+              <input type="number" step="0.01" id="mcRate" placeholder="6.50" oninput="renderMortgageCalc()">
+              <label>Loan term (years)</label>
+              <input type="number" id="mcYears" placeholder="30" oninput="renderMortgageCalc()">
+              <label>Property tax rate (annual %)</label>
+              <input type="number" step="0.01" id="mcTaxRate" placeholder="1.20" oninput="renderMortgageCalc()">
+              <label>Insurance & HOA (monthly)</label>
+              <input type="number" id="mcInsurance" placeholder="0" oninput="renderMortgageCalc()">
+              <div class="job-results" id="mortCalcResults">
+                <div class="job-result-row"><span>Loan amount</span><span>$0</span></div>
+                <div class="job-result-row"><span>Monthly principal & interest</span><span>$0</span></div>
+                <div class="job-result-row"><span>Monthly property tax</span><span>$0</span></div>
+                <div class="job-result-row"><span>Monthly insurance & HOA</span><span>$0</span></div>
+                <div class="job-result-row net"><span>Total monthly payment</span><span>$0</span></div>
+              </div>
+              <button class="apply-btn" onclick="applyMortgageCalc()">→ Apply to my mortgage</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /main-content -->
   </div><!-- /layout -->
 </div><!-- /app -->
@@ -730,6 +807,10 @@ function defaultYearData(){
     annualRef: {
       you: { base:0, overtime:0, holiday:0, cash:0, rsu:0, hourly:0, otWage:0, bonuses:[] },
       her: { base:0, overtime:0, holiday:0, cash:0, rsu:0, hourly:0, otWage:0, bonuses:[] }
+    },
+    mortgage: {
+      total:0, principal:0, taxes:0, other:0,
+      calc: { price:0, down:0, rate:6.5, years:30, taxRate:1.2, insurance:0 }
     }
   };
 }
@@ -821,6 +902,10 @@ function migrateLoaded(loaded){
           });
         }
         CATEGORIES.forEach(c=>{ if(!dst.budgetItems[c]) dst.budgetItems[c] = []; });
+        if(src.mortgage){
+          dst.mortgage = Object.assign({total:0,principal:0,taxes:0,other:0,calc:{price:0,down:0,rate:6.5,years:30,taxRate:1.2,insurance:0}}, src.mortgage);
+          dst.mortgage.calc = Object.assign({price:0,down:0,rate:6.5,years:30,taxRate:1.2,insurance:0}, src.mortgage.calc||{});
+        }
       }
     });
   } else if(loaded.income || loaded.debts || loaded.weekly) {
@@ -1263,6 +1348,87 @@ function syncIncomeInputs(){
   document.getElementById('incHerOther').value   = inc.herOther || '';
 }
 
+// ---------- MORTGAGE ----------
+function onMortgageInput(){
+  const m = yr().mortgage;
+  m.total     = parseFloat(document.getElementById('mortTotal').value)||0;
+  m.principal = parseFloat(document.getElementById('mortPrincipal').value)||0;
+  m.taxes     = parseFloat(document.getElementById('mortTaxes').value)||0;
+  m.other     = parseFloat(document.getElementById('mortOther').value)||0;
+  recalc();
+}
+function syncMortgageInputs(){
+  const m = yr().mortgage || { total:0, principal:0, taxes:0, other:0 };
+  document.getElementById('mortTotal').value     = m.total || '';
+  document.getElementById('mortPrincipal').value = m.principal || '';
+  document.getElementById('mortTaxes').value     = m.taxes || '';
+  document.getElementById('mortOther').value     = m.other || '';
+}
+
+function calcMortgagePayment(loanAmount, ratePct, years){
+  const r = (ratePct/100)/12;
+  const n = years*12;
+  if(loanAmount<=0 || n<=0) return 0;
+  if(r<=0) return loanAmount/n;
+  return loanAmount * (r*Math.pow(1+r,n)) / (Math.pow(1+r,n)-1);
+}
+
+function syncMortgageCalcInputs(){
+  const c = (yr().mortgage||{}).calc || {};
+  document.getElementById('mcPrice').value     = c.price || '';
+  document.getElementById('mcDown').value      = c.down || '';
+  document.getElementById('mcRate').value      = c.rate || '';
+  document.getElementById('mcYears').value     = c.years || '';
+  document.getElementById('mcTaxRate').value   = c.taxRate || '';
+  document.getElementById('mcInsurance').value = c.insurance || '';
+}
+
+function renderMortgageCalc(){
+  const m = yr().mortgage;
+  if(!m.calc) m.calc = { price:0, down:0, rate:6.5, years:30, taxRate:1.2, insurance:0 };
+  const c = m.calc;
+  c.price     = parseFloat(document.getElementById('mcPrice').value)||0;
+  c.down      = parseFloat(document.getElementById('mcDown').value)||0;
+  c.rate      = parseFloat(document.getElementById('mcRate').value)||0;
+  c.years     = parseFloat(document.getElementById('mcYears').value)||0;
+  c.taxRate   = parseFloat(document.getElementById('mcTaxRate').value)||0;
+  c.insurance = parseFloat(document.getElementById('mcInsurance').value)||0;
+
+  const loanAmount = Math.max(0, c.price - c.down);
+  const monthlyPI  = calcMortgagePayment(loanAmount, c.rate, c.years||30);
+  const monthlyTax = (c.price * (c.taxRate/100)) / 12;
+  const monthlyIns = c.insurance||0;
+  const totalMonthly = monthlyPI + monthlyTax + monthlyIns;
+
+  const el = document.getElementById('mortCalcResults');
+  if(el){
+    el.innerHTML = `
+      <div class="job-result-row"><span>Loan amount</span><span>${fmt(loanAmount)}</span></div>
+      <div class="job-result-row"><span>Monthly principal & interest</span><span>${fmt(monthlyPI)}</span></div>
+      <div class="job-result-row"><span>Monthly property tax</span><span>${fmt(monthlyTax)}</span></div>
+      <div class="job-result-row"><span>Monthly insurance & HOA</span><span>${fmt(monthlyIns)}</span></div>
+      <div class="job-result-row net"><span>Total monthly payment</span><span>${fmt(totalMonthly)}</span></div>
+    `;
+  }
+  scheduleSave();
+}
+
+function applyMortgageCalc(){
+  const c = yr().mortgage.calc;
+  const loanAmount = Math.max(0, (c.price||0) - (c.down||0));
+  const monthlyPI  = calcMortgagePayment(loanAmount, c.rate||0, c.years||30);
+  const monthlyTax = ((c.price||0) * ((c.taxRate||0)/100)) / 12;
+  const monthlyIns = c.insurance||0;
+
+  const m = yr().mortgage;
+  m.total     = Math.round(loanAmount);
+  m.principal = Math.round(monthlyPI);
+  m.taxes     = Math.round(monthlyTax);
+  m.other     = Math.round(monthlyIns);
+  syncMortgageInputs();
+  recalc();
+}
+
 // ---------- BILLS ----------
 function addRow(prefix, data){
   const owner = prefix.includes('You') ? 'you' : 'her';
@@ -1465,6 +1631,12 @@ function recalc(){
   const savYou = incYou - expYou;
   const savHer = incHer - expHer;
 
+  // Mortgage (combined-only, not split by person)
+  const mort = y.mortgage || { total:0, principal:0, taxes:0, other:0 };
+  const mortMonthly = (mort.principal||0) + (mort.taxes||0) + (mort.other||0);
+  const mortTotalEl = document.getElementById('mortMonthlyTotal');
+  if(mortTotalEl) mortTotalEl.textContent = fmt(mortMonthly);
+
   // Compare table
   const rows = [
     ['Monthly income', incYou, incHer],
@@ -1472,21 +1644,37 @@ function recalc(){
     ['Monthly bills', moYouSum, moHerSum],
     ['Debt minimum payments', debtYouMin, debtHerMin],
   ];
-  document.getElementById('compareBody').innerHTML = rows.map(r=>`
+  let compareHtml = rows.map(r=>`
     <tr><td>${r[0]}</td><td>${fmt(r[1])}</td><td>${fmt(r[2])}</td><td>${fmt(r[1]+r[2])}</td></tr>
-  `).join('') + `
-    <tr class="total-row"><td>Net savings</td><td>${fmt(savYou)}</td><td>${fmt(savHer)}</td><td>${fmt(savYou+savHer)}</td></tr>
+  `).join('');
+  if(mortMonthly>0){
+    compareHtml += `<tr><td>Mortgage (combined)</td><td>—</td><td>—</td><td>${fmt(mortMonthly)}</td></tr>`;
+  }
+  compareHtml += `
+    <tr class="total-row"><td>Net savings</td><td>${fmt(savYou)}</td><td>${fmt(savHer)}</td><td>${fmt(savYou+savHer-mortMonthly)}</td></tr>
   `;
+  document.getElementById('compareBody').innerHTML = compareHtml;
 
   document.getElementById('ovIncome').textContent = fmt(incYou+incHer);
-  document.getElementById('ovExpenses').textContent = fmt(expYou+expHer);
-  const totalSavings = savYou+savHer;
+  document.getElementById('ovExpenses').textContent = fmt(expYou+expHer+mortMonthly);
+  const totalSavings = savYou+savHer-mortMonthly;
   const savEl = document.getElementById('ovSavings');
   savEl.textContent = fmt(totalSavings);
   savEl.className = 'value '+(totalSavings>=0?'good':'bad');
   const totalIncome = incYou+incHer;
   const savRate = totalIncome>0 ? (totalSavings/totalIncome*100) : 0;
   document.getElementById('ovSavingsSub').textContent = totalIncome>0 ? `${savRate.toFixed(0)}% of combined income` : 'Add income to see rate';
+
+  // Mortgage tab reference readout (mirrors overview)
+  const mortRefIncEl = document.getElementById('mortRefIncome');
+  const mortRefExpEl = document.getElementById('mortRefExpenses');
+  const mortRefSavEl = document.getElementById('mortRefSavings');
+  if(mortRefIncEl){
+    mortRefIncEl.textContent = fmt(incYou+incHer);
+    mortRefExpEl.textContent = fmt(expYou+expHer+mortMonthly);
+    mortRefSavEl.textContent = fmt(totalSavings);
+    mortRefSavEl.className = 'value '+(totalSavings>=0?'good':'bad');
+  }
 
   document.getElementById('ovDebt').textContent = fmt(totalOwed);
   document.getElementById('ovDebtSub').textContent = totalMin>0 ? `${fmt(totalMin)}/mo minimum · ${weightedRate.toFixed(1)}% avg rate` : 'No debt entered';
@@ -1544,6 +1732,9 @@ function render(){
   renderDebtTable('creditcar');
   renderBudgetTable();
   renderJobCalcs();
+  syncMortgageInputs();
+  syncMortgageCalcInputs();
+  renderMortgageCalc();
   recalc();
 }
 
