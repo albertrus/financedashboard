@@ -1221,10 +1221,15 @@ function calcJobNet(job){
   const monthlyPreTax = ded401k + dedHsa + dedBen + dedOther;
   const annualPreTax  = monthlyPreTax * 12;
 
-  const regularHours = Math.min(hours, 40);
-  const overtimeHours = Math.max(0, hours - 40);
-  const weeklyGross = (regularHours * rate) + (overtimeHours * rate * 1.5);
-  const annualGross = weeklyGross * 52;
+  let annualGross;
+  if(job.annualSalary && job.annualSalary>0){
+    annualGross = job.annualSalary;
+  } else {
+    const regularHours = Math.min(hours, 40);
+    const overtimeHours = Math.max(0, hours - 40);
+    const weeklyGross = (regularHours * rate) + (overtimeHours * rate * 1.5);
+    annualGross = weeklyGross * 52;
+  }
   const monthlyGross = annualGross / 12;
 
   // Federal
@@ -1272,7 +1277,7 @@ function removeJobCalc(id){
 function updateJobField(id, field, value){
   const job = (yr().jobCalcs||[]).find(j=>j.id===id);
   if(!job) return;
-  const numFields = ['rate','hours','ded401k','dedHsa','dedBen','dedOther'];
+  const numFields = ['rate','hours','annualSalary','ded401k','dedHsa','dedBen','dedOther'];
   job[field] = numFields.includes(field) ? (numVal(value)||0) : value;
   cascadeForward('jobCalcs');
   refreshJobCardResults(id);
@@ -1347,6 +1352,8 @@ function renderJobCalcs(){
         <input type="text" inputmode="decimal" placeholder="0.00" step="0.01" value="${job.rate||''}" oninput="updateJobField('${job.id}','rate',this.value)">
         <label>Hours per week</label>
         <input type="text" inputmode="decimal" placeholder="40" value="${job.hours||''}" oninput="updateJobField('${job.id}','hours',this.value)">
+        <div class="job-ded-head">Or, total annual salary <span>(overrides hourly calc above)</span></div>
+        <input type="text" inputmode="decimal" placeholder="0" value="${job.annualSalary||''}" oninput="updateJobField('${job.id}','annualSalary',this.value)">
         <div class="job-ded-head">Pre-tax deductions <span>(monthly)</span></div>
         <label>401(k) / 403(b)</label>
         <input type="text" inputmode="decimal" placeholder="0" value="${job.ded401k||''}" oninput="updateJobField('${job.id}','ded401k',this.value)">
