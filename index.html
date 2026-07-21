@@ -1043,8 +1043,29 @@ function updateJobField(id, field, value){
   if(!job) return;
   const numFields = ['rate','hours','ded401k','dedHsa','dedBen','dedOther'];
   job[field] = numFields.includes(field) ? (parseFloat(value)||0) : value;
-  renderJobCalcs();
+  refreshJobCardResults(id);
   scheduleSave();
+}
+
+function refreshJobCardResults(id){
+  const job = (yr().jobCalcs||[]).find(j=>j.id===id);
+  if(!job) return;
+  const { monthlyGross, monthlyFed, monthlyState, monthlyFica, monthlyPreTax, monthlyNet, stName } = calcJobNet(job);
+  const ownerName = job.owner==='you' ? escapeHtml(state.names.you) : escapeHtml(state.names.her);
+  const hasStateTax = monthlyState > 0;
+  const resultsEl = document.getElementById('jobResults_'+id);
+  if(resultsEl){
+    resultsEl.innerHTML = `
+      <div class="job-result-row"><span>Monthly gross</span><span>${fmt(monthlyGross)}</span></div>
+      <div class="job-result-row"><span>Federal income tax</span><span>−${fmt(monthlyFed)}</span></div>
+      ${hasStateTax ? `<div class="job-result-row"><span>${stName} state tax</span><span>−${fmt(monthlyState)}</span></div>` : `<div class="job-result-row"><span>${stName} state tax</span><span style="color:var(--you)">$0</span></div>`}
+      <div class="job-result-row"><span>FICA (SS + Medicare)</span><span>−${fmt(monthlyFica)}</span></div>
+      ${monthlyPreTax>0?`<div class="job-result-row"><span>Pre-tax deductions</span><span>−${fmt(monthlyPreTax)}</span></div>`:''}
+      <div class="job-result-row net"><span>Monthly take-home</span><span>${fmt(monthlyNet)}</span></div>
+    `;
+  }
+  const applyBtn = document.getElementById('applyBtn_'+id);
+  if(applyBtn) applyBtn.textContent = `→ Apply to ${ownerName}'s primary income`;
 }
 
 function applyJobToIncome(id){
@@ -1103,7 +1124,7 @@ function renderJobCalcs(){
         <input type="number" placeholder="0" value="${job.dedBen||''}" oninput="updateJobField('${job.id}','dedBen',this.value)">
         <label>Other pre-tax</label>
         <input type="number" placeholder="0" value="${job.dedOther||''}" oninput="updateJobField('${job.id}','dedOther',this.value)">
-        <div class="job-results">
+        <div class="job-results" id="jobResults_${job.id}">
           <div class="job-result-row"><span>Monthly gross</span><span>${fmt(monthlyGross)}</span></div>
           <div class="job-result-row"><span>Federal income tax</span><span>−${fmt(monthlyFed)}</span></div>
           ${hasStateTax ? `<div class="job-result-row"><span>${stName} state tax</span><span>−${fmt(monthlyState)}</span></div>` : `<div class="job-result-row"><span>${stName} state tax</span><span style="color:var(--you)">$0</span></div>`}
@@ -1111,7 +1132,7 @@ function renderJobCalcs(){
           ${monthlyPreTax>0?`<div class="job-result-row"><span>Pre-tax deductions</span><span>−${fmt(monthlyPreTax)}</span></div>`:''}
           <div class="job-result-row net"><span>Monthly take-home</span><span>${fmt(monthlyNet)}</span></div>
         </div>
-        <button class="apply-btn" onclick="applyJobToIncome('${job.id}')">→ Apply to ${ownerName}'s primary income</button>
+        <button class="apply-btn" id="applyBtn_${job.id}" onclick="applyJobToIncome('${job.id}')">→ Apply to ${ownerName}'s primary income</button>
       </div>
     `;
   }).join('');
@@ -1131,8 +1152,23 @@ function onRefInput(who, suffix){
   r.rsu      = parseFloat(document.getElementById('ref'+cap(who)+'Rsu'+suffix).value)||0;
   r.hourly   = parseFloat(document.getElementById('ref'+cap(who)+'Hourly'+suffix).value)||0;
   r.otWage   = parseFloat(document.getElementById('ref'+cap(who)+'OtWage'+suffix).value)||0;
-  syncRefInputs();
+  updateRefTotal(who);
+  // mirror to the other tab's copy only — never touch the field being typed in
+  const otherSuffix = REF_SUFFIXES.find(s=>s!==suffix);
+  if(otherSuffix !== undefined) mirrorRefFields(who, otherSuffix);
   scheduleSave();
+}
+function mirrorRefFields(who, suffix){
+  const r = yr().annualRef[who];
+  const baseEl = document.getElementById('ref'+cap(who)+'Base'+suffix);
+  if(!baseEl) return;
+  baseEl.value = r.base||'';
+  document.getElementById('ref'+cap(who)+'Overtime'+suffix).value = r.overtime||'';
+  document.getElementById('ref'+cap(who)+'Holiday'+suffix).value  = r.holiday||'';
+  document.getElementById('ref'+cap(who)+'Cash'+suffix).value     = r.cash||'';
+  document.getElementById('ref'+cap(who)+'Rsu'+suffix).value      = r.rsu||'';
+  document.getElementById('ref'+cap(who)+'Hourly'+suffix).value   = r.hourly||'';
+  document.getElementById('ref'+cap(who)+'OtWage'+suffix).value   = r.otWage||'';
 }
 function updateRefTotal(who){
   const r = yr().annualRef[who];
@@ -1178,12 +1214,16 @@ function removeRefBonus(who, id){
   syncRefInputs();
   scheduleSave();
 }
-function updateRefBonusField(who, id, field, value){
+function updateRefBonusField(who, id, field, value, suffix){
+  suffix = suffix || '';
   const r = yr().annualRef[who];
   const b = (r.bonuses||[]).find(x=>x.id===id);
   if(!b) return;
   b[field] = field==='amount' ? (parseFloat(value)||0) : value;
   updateRefTotal(who);
+  // mirror to the other tab's copy only — never touch the field being typed in
+  const otherSuffix = REF_SUFFIXES.find(s=>s!==suffix);
+  if(otherSuffix !== undefined) renderRefBonusList(who, otherSuffix);
   scheduleSave();
 }
 function renderRefBonusList(who, suffix){
@@ -1192,8 +1232,8 @@ function renderRefBonusList(who, suffix){
   const bonuses = (yr().annualRef[who].bonuses)||[];
   el.innerHTML = bonuses.map(b=>`
     <div class="ref-bonus-row">
-      <input type="text" placeholder="e.g. Signing bonus" value="${escapeHtml(b.name)}" oninput="updateRefBonusField('${who}','${b.id}','name',this.value)">
-      <input type="number" placeholder="0" value="${b.amount||''}" oninput="updateRefBonusField('${who}','${b.id}','amount',this.value)">
+      <input type="text" placeholder="e.g. Signing bonus" value="${escapeHtml(b.name)}" oninput="updateRefBonusField('${who}','${b.id}','name',this.value,'${suffix}')">
+      <input type="number" placeholder="0" value="${b.amount||''}" oninput="updateRefBonusField('${who}','${b.id}','amount',this.value,'${suffix}')">
       <button class="remove-btn" onclick="removeRefBonus('${who}','${b.id}')">×</button>
     </div>
   `).join('');
