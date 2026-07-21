@@ -267,6 +267,62 @@
   }
   .cat-col-labels span:not(:first-child){text-align:right;}
 
+  /* Job Calculator */
+  .job-calc-section{margin-top:24px;}
+  .job-calc-header{
+    display:flex;justify-content:space-between;align-items:center;
+    border-bottom:1.5px solid var(--ink);padding-bottom:10px;margin-bottom:16px;
+  }
+  .job-calc-header h3{
+    font-family:'Fraunces',serif;font-size:18px;font-weight:600;margin:0;
+    color:var(--year-color,var(--ink));
+  }
+  .job-calc-header .jc-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.06em;}
+  .add-job-btn{
+    font-family:'JetBrains Mono',monospace;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;
+    background:var(--year-color,var(--ink));color:#fff;border:none;padding:8px 14px;cursor:pointer;border-radius:3px;
+  }
+  .add-job-btn:hover{opacity:.85;}
+  .job-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+  .job-card{
+    background:var(--bg-panel);border:1px solid var(--line-strong);padding:18px;position:relative;
+  }
+  .job-card-remove{
+    position:absolute;top:10px;right:10px;background:none;border:none;color:var(--bad);
+    cursor:pointer;font-size:16px;line-height:1;
+  }
+  .job-card label{
+    display:block;font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;
+    letter-spacing:0.06em;color:var(--ink-soft);margin-bottom:4px;margin-top:10px;
+  }
+  .job-card label:first-of-type{margin-top:0;}
+  .job-card input,.job-card select{
+    width:100%;padding:8px 10px;border:1px solid var(--line);background:#fff;
+    font-family:'JetBrains Mono',monospace;font-size:13px;border-radius:3px;
+  }
+  .job-card input[type=text]{font-family:'Inter',sans-serif;}
+  .job-card input:focus,.job-card select:focus{outline:1.5px solid var(--year-color,var(--ink));}
+  .job-results{
+    margin-top:14px;padding-top:12px;border-top:1px solid var(--line);
+  }
+  .job-result-row{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-family:'JetBrains Mono',monospace;font-size:12px;margin-bottom:5px;color:var(--ink-soft);
+  }
+  .job-result-row.net{
+    margin-top:8px;padding-top:8px;border-top:1px solid var(--line);
+    color:var(--ink);font-size:14px;font-weight:700;
+  }
+  .job-result-row span:last-child{color:var(--ink);}
+  .job-result-row.net span:last-child{color:var(--year-color,var(--you));font-size:16px;}
+  .apply-btn{
+    margin-top:12px;width:100%;font-family:'JetBrains Mono',monospace;font-size:11px;
+    text-transform:uppercase;letter-spacing:0.05em;padding:8px;cursor:pointer;
+    background:none;border:1px solid var(--year-color,var(--ink));
+    color:var(--year-color,var(--ink));border-radius:3px;
+  }
+  .apply-btn:hover{background:var(--year-color,var(--ink));color:#fff;}
+
   @media(max-width:700px){
     .layout{flex-direction:column;}
     .year-sidebar{width:100%;display:flex;flex-direction:row;margin-right:0;margin-bottom:16px;}
@@ -401,6 +457,18 @@
         </div>
       </div>
 
+      <!-- JOB CALCULATOR (2027+) -->
+      <div id="jobCalcSection" class="job-calc-section" style="display:none;">
+        <div class="job-calc-header">
+          <div>
+            <h3>Job Calculator</h3>
+            <div class="jc-sub">Texas · No state income tax</div>
+          </div>
+          <button class="add-job-btn" onclick="addJobCalc()">+ New job</button>
+        </div>
+        <div class="job-cards" id="jobCards"></div>
+      </div>
+
       <!-- WEEKLY BILLS -->
       <div class="panel" id="panel-weekly">
         <h2 class="section-title">Weekly bills</h2>
@@ -513,7 +581,8 @@ function defaultYearData(){
     monthly: { you:[], her:[] },
     budgetItems: Object.fromEntries(CATEGORIES.map(c=>[c,[]])),
     debts: [],
-    creditcars: []
+    creditcars: [],
+    jobCalcs: []
   };
 }
 
@@ -596,6 +665,7 @@ function migrateLoaded(loaded){
         dst.debts = src.debts || dst.debts;
         dst.creditcars = src.creditcars || dst.creditcars;
         dst.budgetItems = src.budgetItems || dst.budgetItems;
+        dst.jobCalcs = src.jobCalcs || dst.jobCalcs || [];
         CATEGORIES.forEach(c=>{ if(!dst.budgetItems[c]) dst.budgetItems[c] = []; });
       }
     });
@@ -681,6 +751,118 @@ function applyNameLabels(){
   ['incLabelHer','wkLabelHer','moLabelHer'].forEach(id=>document.getElementById(id).textContent=her);
   document.getElementById('thYou').textContent = you;
   document.getElementById('thHer').textContent = her;
+}
+
+// ---------- JOB CALCULATOR ----------
+// 2024 federal brackets
+const FED_BRACKETS = {
+  single:  [[11600,0.10],[47150,0.12],[100525,0.22],[191950,0.24],[243725,0.32],[609350,0.35],[Infinity,0.37]],
+  married: [[23200,0.10],[94300,0.12],[201050,0.22],[383900,0.24],[487450,0.32],[731200,0.35],[Infinity,0.37]]
+};
+const STD_DED = { single:14600, married:29200 };
+
+function calcFedTax(annualGross, filing){
+  const taxable = Math.max(0, annualGross - STD_DED[filing]);
+  let tax = 0, prev = 0;
+  for(const [top, rate] of FED_BRACKETS[filing]){
+    if(taxable <= prev) break;
+    tax += (Math.min(taxable, top) - prev) * rate;
+    prev = top;
+  }
+  return tax;
+}
+
+function calcJobNet(rate, hours, filing){
+  const annualGross = rate * hours * 52;
+  const monthlyGross = annualGross / 12;
+  const fedTaxAnnual = calcFedTax(annualGross, filing);
+  const ssAnnual  = Math.min(annualGross, 168600) * 0.062;
+  const medAnnual = annualGross * 0.0145;
+  const monthlyFed = fedTaxAnnual / 12;
+  const monthlyFica = (ssAnnual + medAnnual) / 12;
+  const monthlyNet = monthlyGross - monthlyFed - monthlyFica;
+  return { monthlyGross, monthlyFed, monthlyFica, monthlyNet };
+}
+
+function addJobCalc(data){
+  if(!yr().jobCalcs) yr().jobCalcs = [];
+  const job = data || { id:newId(), owner:'you', name:'', rate:0, hours:40, filing:'single' };
+  yr().jobCalcs.push(job);
+  renderJobCalcs();
+  scheduleSave();
+}
+
+function removeJobCalc(id){
+  yr().jobCalcs = (yr().jobCalcs||[]).filter(j=>j.id!==id);
+  renderJobCalcs();
+  scheduleSave();
+}
+
+function updateJobField(id, field, value){
+  const job = (yr().jobCalcs||[]).find(j=>j.id===id);
+  if(!job) return;
+  if(field==='rate'||field==='hours') job[field] = parseFloat(value)||0;
+  else job[field] = value;
+  renderJobCalcs();
+  scheduleSave();
+}
+
+function applyJobToIncome(id){
+  const job = (yr().jobCalcs||[]).find(j=>j.id===id);
+  if(!job) return;
+  const { monthlyNet } = calcJobNet(job.rate||0, job.hours||0, job.filing||'single');
+  const net = Math.round(monthlyNet);
+  if(job.owner==='you'){
+    yr().income.youPrimary = net;
+    document.getElementById('incYouPrimary').value = net;
+  } else {
+    yr().income.herPrimary = net;
+    document.getElementById('incHerPrimary').value = net;
+  }
+  recalc();
+}
+
+function renderJobCalcs(){
+  const section = document.getElementById('jobCalcSection');
+  const container = document.getElementById('jobCards');
+  const show = activeYear >= 2026;
+  section.style.display = show ? '' : 'none';
+  if(!show) return;
+  const jobs = yr().jobCalcs || [];
+  if(jobs.length === 0){ container.innerHTML = '<div class="empty-hint" style="padding:4px 0;">Click "+ New job" to add a salary calculator.</div>'; return; }
+  container.innerHTML = jobs.map(job=>{
+    const rate = job.rate||0, hours = job.hours||40;
+    const { monthlyGross, monthlyFed, monthlyFica, monthlyNet } = calcJobNet(rate, hours, job.filing||'single');
+    const ownerName = job.owner==='you' ? escapeHtml(state.names.you) : escapeHtml(state.names.her);
+    return `
+      <div class="job-card">
+        <button class="job-card-remove" onclick="removeJobCalc('${job.id}')">×</button>
+        <label>Job name</label>
+        <input type="text" placeholder="e.g. New position" value="${escapeHtml(job.name)}" oninput="updateJobField('${job.id}','name',this.value)">
+        <label>For</label>
+        <select onchange="updateJobField('${job.id}','owner',this.value)">
+          <option value="you" ${job.owner==='you'?'selected':''}>${escapeHtml(state.names.you)}</option>
+          <option value="her" ${job.owner==='her'?'selected':''}>${escapeHtml(state.names.her)}</option>
+        </select>
+        <label>Hourly rate ($)</label>
+        <input type="number" placeholder="0.00" step="0.01" value="${rate||''}" oninput="updateJobField('${job.id}','rate',this.value)">
+        <label>Hours per week</label>
+        <input type="number" placeholder="40" value="${hours||''}" oninput="updateJobField('${job.id}','hours',this.value)">
+        <label>Filing status</label>
+        <select onchange="updateJobField('${job.id}','filing',this.value)">
+          <option value="single" ${job.filing==='single'?'selected':''}>Single</option>
+          <option value="married" ${job.filing==='married'?'selected':''}>Married filing jointly</option>
+        </select>
+        <div class="job-results">
+          <div class="job-result-row"><span>Monthly gross</span><span>${fmt(monthlyGross)}</span></div>
+          <div class="job-result-row"><span>Federal income tax</span><span>−${fmt(monthlyFed)}</span></div>
+          <div class="job-result-row"><span>FICA (SS + Medicare)</span><span>−${fmt(monthlyFica)}</span></div>
+          <div class="job-result-row net"><span>Monthly take-home</span><span>${fmt(monthlyNet)}</span></div>
+        </div>
+        <button class="apply-btn" onclick="applyJobToIncome('${job.id}')">→ Apply to ${ownerName}'s primary income</button>
+      </div>
+    `;
+  }).join('');
 }
 
 // ---------- INCOME ----------
@@ -978,6 +1160,7 @@ function render(){
   renderDebtTable('school');
   renderDebtTable('creditcar');
   renderBudgetTable();
+  renderJobCalcs();
   recalc();
 }
 
