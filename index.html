@@ -267,6 +267,46 @@
   }
   .cat-col-labels span:not(:first-child){text-align:right;}
 
+  /* Annual Income Reference */
+  .annual-ref{
+    margin-top:28px;
+    border:1px solid var(--line-strong);background:var(--bg-panel);
+  }
+  .annual-ref-head{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:13px 18px;border-bottom:1px solid var(--line-strong);
+  }
+  .annual-ref-head h3{
+    font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin:0;
+    color:var(--year-color,var(--ink));
+  }
+  .annual-ref-head .ref-note{
+    font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-soft);
+    text-transform:uppercase;letter-spacing:0.06em;
+  }
+  .annual-ref-cols{display:grid;grid-template-columns:1fr 1px 1fr;}
+  .annual-ref-col{padding:16px 20px;}
+  .annual-ref-divider{background:var(--line-strong);}
+  .annual-ref-col .col-head{margin-bottom:12px;}
+  .ref-row{
+    display:flex;align-items:center;gap:10px;margin-bottom:8px;
+  }
+  .ref-row label{
+    font-size:12px;color:var(--ink-soft);flex:1.2;
+  }
+  .ref-row input{
+    flex:1;padding:7px 10px;border:1px solid var(--line);background:#fff;
+    font-family:'JetBrains Mono',monospace;font-size:13px;border-radius:3px;text-align:right;
+  }
+  .ref-total{
+    margin-top:12px;padding-top:10px;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;
+    font-family:'JetBrains Mono',monospace;font-size:13px;
+  }
+  .ref-total b{font-size:16px;}
+  .annual-ref-col:first-child .ref-total b{color:var(--you);}
+  .annual-ref-col:last-child .ref-total b{color:var(--her);}
+
   /* Job Calculator */
   .job-calc-section{margin-top:24px;}
   .job-calc-header{
@@ -351,7 +391,7 @@
   <div class="names-bar">
     <div class="name-field">
       <label>Partner A</label>
-      <input type="text" id="nameYou" value="You" oninput="updateNames()">
+      <input type="text" id="nameYou" value="Him" oninput="updateNames()">
     </div>
     <div class="name-field">
       <label>Partner B</label>
@@ -409,7 +449,7 @@
           <thead>
             <tr>
               <th>&nbsp;</th>
-              <th class="th-you" id="thYou">You</th>
+              <th class="th-you" id="thYou">Him</th>
               <th class="th-her" id="thHer">Her</th>
               <th class="th-combo">Combined</th>
             </tr>
@@ -442,7 +482,7 @@
         <p class="section-sub">Take-home pay, after taxes. Add both primary and any side income.</p>
         <div class="split">
           <div class="col">
-            <div class="col-head"><span class="swatch you"></span><span id="incLabelYou">You</span></div>
+            <div class="col-head"><span class="swatch you"></span><span id="incLabelYou">Him</span></div>
             <div class="income-row"><label>Primary job</label><input type="number" id="incYouPrimary" placeholder="0" oninput="onIncomeInput()"></div>
             <div class="income-row" style="margin-top:8px;"><label>Other income</label><input type="number" id="incYouOther" placeholder="0" oninput="onIncomeInput()"></div>
             <div class="col-total"><span>Monthly total</span><b id="incYouTotal">$0</b></div>
@@ -453,6 +493,35 @@
             <div class="income-row"><label>Primary job</label><input type="number" id="incHerPrimary" placeholder="0" oninput="onIncomeInput()"></div>
             <div class="income-row" style="margin-top:8px;"><label>Other income</label><input type="number" id="incHerOther" placeholder="0" oninput="onIncomeInput()"></div>
             <div class="col-total"><span>Monthly total</span><b id="incHerTotal">$0</b></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ANNUAL INCOME REFERENCE -->
+      <div class="annual-ref">
+        <div class="annual-ref-head">
+          <h3>Annual income reference</h3>
+          <span class="ref-note">For reference only · does not affect calculations</span>
+        </div>
+        <div class="annual-ref-cols">
+          <div class="annual-ref-col">
+            <div class="col-head"><span class="swatch you"></span><span id="refLabelYou">Him</span></div>
+            <div class="ref-row"><label>Base pay</label><input type="number" id="refYouBase" placeholder="0" oninput="onRefInput('you')"></div>
+            <div class="ref-row"><label>Overtime</label><input type="number" id="refYouOvertime" placeholder="0" oninput="onRefInput('you')"></div>
+            <div class="ref-row"><label>Holiday bonus</label><input type="number" id="refYouHoliday" placeholder="0" oninput="onRefInput('you')"></div>
+            <div class="ref-row"><label>Cash bonus</label><input type="number" id="refYouCash" placeholder="0" oninput="onRefInput('you')"></div>
+            <div class="ref-row"><label>RSU value</label><input type="number" id="refYouRsu" placeholder="0" oninput="onRefInput('you')"></div>
+            <div class="ref-total"><span>Total annual</span><b id="refYouTotal">$0</b></div>
+          </div>
+          <div class="annual-ref-divider"></div>
+          <div class="annual-ref-col">
+            <div class="col-head"><span class="swatch her"></span><span id="refLabelHer">Her</span></div>
+            <div class="ref-row"><label>Base pay</label><input type="number" id="refHerBase" placeholder="0" oninput="onRefInput('her')"></div>
+            <div class="ref-row"><label>Overtime</label><input type="number" id="refHerOvertime" placeholder="0" oninput="onRefInput('her')"></div>
+            <div class="ref-row"><label>Holiday bonus</label><input type="number" id="refHerHoliday" placeholder="0" oninput="onRefInput('her')"></div>
+            <div class="ref-row"><label>Cash bonus</label><input type="number" id="refHerCash" placeholder="0" oninput="onRefInput('her')"></div>
+            <div class="ref-row"><label>RSU value</label><input type="number" id="refHerRsu" placeholder="0" oninput="onRefInput('her')"></div>
+            <div class="ref-total"><span>Total annual</span><b id="refHerTotal">$0</b></div>
           </div>
         </div>
       </div>
@@ -582,12 +651,16 @@ function defaultYearData(){
     budgetItems: Object.fromEntries(CATEGORIES.map(c=>[c,[]])),
     debts: [],
     creditcars: [],
-    jobCalcs: []
+    jobCalcs: [],
+    annualRef: {
+      you: { base:0, overtime:0, holiday:0, cash:0, rsu:0 },
+      her: { base:0, overtime:0, holiday:0, cash:0, rsu:0 }
+    }
   };
 }
 
 let state = {
-  names: { you:"You", her:"Her" },
+  names: { you:"Him", her:"Her" },
   years: Object.fromEntries(YEARS.map(y=>[y, defaultYearData()]))
 };
 
@@ -666,6 +739,7 @@ function migrateLoaded(loaded){
         dst.creditcars = src.creditcars || dst.creditcars;
         dst.budgetItems = src.budgetItems || dst.budgetItems;
         dst.jobCalcs = src.jobCalcs || dst.jobCalcs || [];
+        dst.annualRef = src.annualRef || dst.annualRef;
         CATEGORIES.forEach(c=>{ if(!dst.budgetItems[c]) dst.budgetItems[c] = []; });
       }
     });
@@ -751,6 +825,7 @@ function applyNameLabels(){
   ['incLabelHer','wkLabelHer','moLabelHer'].forEach(id=>document.getElementById(id).textContent=her);
   document.getElementById('thYou').textContent = you;
   document.getElementById('thHer').textContent = her;
+  applyNameLabelsRef();
 }
 
 // ---------- JOB CALCULATOR ----------
@@ -863,6 +938,40 @@ function renderJobCalcs(){
       </div>
     `;
   }).join('');
+}
+
+// ---------- ANNUAL REF ----------
+function onRefInput(who){
+  const r = yr().annualRef[who];
+  r.base     = parseFloat(document.getElementById('ref'+cap(who)+'Base').value)||0;
+  r.overtime = parseFloat(document.getElementById('ref'+cap(who)+'Overtime').value)||0;
+  r.holiday  = parseFloat(document.getElementById('ref'+cap(who)+'Holiday').value)||0;
+  r.cash     = parseFloat(document.getElementById('ref'+cap(who)+'Cash').value)||0;
+  r.rsu      = parseFloat(document.getElementById('ref'+cap(who)+'Rsu').value)||0;
+  updateRefTotal(who);
+  scheduleSave();
+}
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+function updateRefTotal(who){
+  const r = yr().annualRef[who];
+  const total = (r.base||0)+(r.overtime||0)+(r.holiday||0)+(r.cash||0)+(r.rsu||0);
+  document.getElementById('ref'+cap(who)+'Total').textContent = fmt(total);
+}
+function syncRefInputs(){
+  const ref = yr().annualRef || { you:{}, her:{} };
+  ['you','her'].forEach(who=>{
+    const r = ref[who] || {};
+    document.getElementById('ref'+cap(who)+'Base').value     = r.base||'';
+    document.getElementById('ref'+cap(who)+'Overtime').value = r.overtime||'';
+    document.getElementById('ref'+cap(who)+'Holiday').value  = r.holiday||'';
+    document.getElementById('ref'+cap(who)+'Cash').value     = r.cash||'';
+    document.getElementById('ref'+cap(who)+'Rsu').value      = r.rsu||'';
+    updateRefTotal(who);
+  });
+}
+function applyNameLabelsRef(){
+  document.getElementById('refLabelYou').textContent = state.names.you;
+  document.getElementById('refLabelHer').textContent = state.names.her;
 }
 
 // ---------- INCOME ----------
@@ -1155,6 +1264,7 @@ function render(){
   document.getElementById('nameHer').value = state.names.her;
   applyNameLabels();
   syncIncomeInputs();
+  syncRefInputs();
   renderBillList('wkYou'); renderBillList('wkHer');
   renderBillList('moYou'); renderBillList('moHer');
   renderDebtTable('school');
