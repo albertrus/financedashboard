@@ -480,6 +480,35 @@
             <div class="sub" id="ovHealthSub"></div>
           </div>
         </div>
+
+        <!-- ANNUAL INCOME REFERENCE (overview copy) -->
+        <div class="annual-ref">
+          <div class="annual-ref-head">
+            <h3>Annual income reference</h3>
+            <span class="ref-note">For reference only · does not affect calculations</span>
+          </div>
+          <div class="annual-ref-cols">
+            <div class="annual-ref-col">
+              <div class="col-head"><span class="swatch you"></span><span id="refLabelYouOv">Him</span></div>
+              <div class="ref-row"><label>Base pay</label><input type="number" id="refYouBaseOv" placeholder="0" oninput="onRefInput('you','Ov')"></div>
+              <div class="ref-row"><label>Overtime</label><input type="number" id="refYouOvertimeOv" placeholder="0" oninput="onRefInput('you','Ov')"></div>
+              <div class="ref-row"><label>Holiday bonus</label><input type="number" id="refYouHolidayOv" placeholder="0" oninput="onRefInput('you','Ov')"></div>
+              <div class="ref-row"><label>Cash bonus</label><input type="number" id="refYouCashOv" placeholder="0" oninput="onRefInput('you','Ov')"></div>
+              <div class="ref-row"><label>RSU value</label><input type="number" id="refYouRsuOv" placeholder="0" oninput="onRefInput('you','Ov')"></div>
+              <div class="ref-total"><span>Total annual</span><b id="refYouTotalOv">$0</b></div>
+            </div>
+            <div class="annual-ref-divider"></div>
+            <div class="annual-ref-col">
+              <div class="col-head"><span class="swatch her"></span><span id="refLabelHerOv">Her</span></div>
+              <div class="ref-row"><label>Base pay</label><input type="number" id="refHerBaseOv" placeholder="0" oninput="onRefInput('her','Ov')"></div>
+              <div class="ref-row"><label>Overtime</label><input type="number" id="refHerOvertimeOv" placeholder="0" oninput="onRefInput('her','Ov')"></div>
+              <div class="ref-row"><label>Holiday bonus</label><input type="number" id="refHerHolidayOv" placeholder="0" oninput="onRefInput('her','Ov')"></div>
+              <div class="ref-row"><label>Cash bonus</label><input type="number" id="refHerCashOv" placeholder="0" oninput="onRefInput('her','Ov')"></div>
+              <div class="ref-row"><label>RSU value</label><input type="number" id="refHerRsuOv" placeholder="0" oninput="onRefInput('her','Ov')"></div>
+              <div class="ref-total"><span>Total annual</span><b id="refHerTotalOv">$0</b></div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- INCOME -->
@@ -1044,38 +1073,52 @@ function renderJobCalcs(){
   }).join('');
 }
 
-// ---------- ANNUAL REF ----------
-function onRefInput(who){
+// ---------- ANNUAL REF (mirrored on Overview + Income tabs) ----------
+const REF_SUFFIXES = ['', 'Ov'];
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+function onRefInput(who, suffix){
+  suffix = suffix || '';
   const r = yr().annualRef[who];
-  r.base     = parseFloat(document.getElementById('ref'+cap(who)+'Base').value)||0;
-  r.overtime = parseFloat(document.getElementById('ref'+cap(who)+'Overtime').value)||0;
-  r.holiday  = parseFloat(document.getElementById('ref'+cap(who)+'Holiday').value)||0;
-  r.cash     = parseFloat(document.getElementById('ref'+cap(who)+'Cash').value)||0;
-  r.rsu      = parseFloat(document.getElementById('ref'+cap(who)+'Rsu').value)||0;
-  updateRefTotal(who);
+  r.base     = parseFloat(document.getElementById('ref'+cap(who)+'Base'+suffix).value)||0;
+  r.overtime = parseFloat(document.getElementById('ref'+cap(who)+'Overtime'+suffix).value)||0;
+  r.holiday  = parseFloat(document.getElementById('ref'+cap(who)+'Holiday'+suffix).value)||0;
+  r.cash     = parseFloat(document.getElementById('ref'+cap(who)+'Cash'+suffix).value)||0;
+  r.rsu      = parseFloat(document.getElementById('ref'+cap(who)+'Rsu'+suffix).value)||0;
+  syncRefInputs();
   scheduleSave();
 }
-function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
 function updateRefTotal(who){
   const r = yr().annualRef[who];
   const total = (r.base||0)+(r.overtime||0)+(r.holiday||0)+(r.cash||0)+(r.rsu||0);
-  document.getElementById('ref'+cap(who)+'Total').textContent = fmt(total);
+  REF_SUFFIXES.forEach(suffix=>{
+    const el = document.getElementById('ref'+cap(who)+'Total'+suffix);
+    if(el) el.textContent = fmt(total);
+  });
 }
 function syncRefInputs(){
   const ref = yr().annualRef || { you:{}, her:{} };
   ['you','her'].forEach(who=>{
     const r = ref[who] || {};
-    document.getElementById('ref'+cap(who)+'Base').value     = r.base||'';
-    document.getElementById('ref'+cap(who)+'Overtime').value = r.overtime||'';
-    document.getElementById('ref'+cap(who)+'Holiday').value  = r.holiday||'';
-    document.getElementById('ref'+cap(who)+'Cash').value     = r.cash||'';
-    document.getElementById('ref'+cap(who)+'Rsu').value      = r.rsu||'';
+    REF_SUFFIXES.forEach(suffix=>{
+      const baseEl = document.getElementById('ref'+cap(who)+'Base'+suffix);
+      if(!baseEl) return;
+      baseEl.value = r.base||'';
+      document.getElementById('ref'+cap(who)+'Overtime'+suffix).value = r.overtime||'';
+      document.getElementById('ref'+cap(who)+'Holiday'+suffix).value  = r.holiday||'';
+      document.getElementById('ref'+cap(who)+'Cash'+suffix).value     = r.cash||'';
+      document.getElementById('ref'+cap(who)+'Rsu'+suffix).value      = r.rsu||'';
+    });
     updateRefTotal(who);
   });
 }
 function applyNameLabelsRef(){
-  document.getElementById('refLabelYou').textContent = state.names.you;
-  document.getElementById('refLabelHer').textContent = state.names.her;
+  REF_SUFFIXES.forEach(suffix=>{
+    const youEl = document.getElementById('refLabelYou'+suffix);
+    const herEl = document.getElementById('refLabelHer'+suffix);
+    if(youEl) youEl.textContent = state.names.you;
+    if(herEl) herEl.textContent = state.names.her;
+  });
 }
 
 // ---------- INCOME ----------
