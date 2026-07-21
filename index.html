@@ -31,35 +31,27 @@
     font-family:'Inter',sans-serif;
     -webkit-font-smoothing:antialiased;
   }
-  .app{max-width:1080px;margin:0 auto;padding:28px 20px 80px;}
+
+  .app{max-width:1140px;margin:0 auto;padding:28px 20px 80px;}
 
   /* Header */
   .masthead{
     display:flex;justify-content:space-between;align-items:flex-end;
     border-bottom:2px solid var(--ink);
-    padding-bottom:16px;margin-bottom:6px;
+    padding-bottom:16px;margin-bottom:18px;
     flex-wrap:wrap;gap:12px;
   }
   .masthead h1{
-    font-family:'Fraunces',serif;
-    font-optical-sizing:auto;
-    font-weight:600;
-    font-size:34px;
-    margin:0;
-    letter-spacing:-0.01em;
+    font-family:'Fraunces',serif;font-optical-sizing:auto;
+    font-weight:600;font-size:34px;margin:0;letter-spacing:-0.01em;
   }
   .masthead .tag{
-    font-family:'JetBrains Mono',monospace;
-    font-size:11px;
-    color:var(--ink-soft);
-    text-transform:uppercase;
-    letter-spacing:0.08em;
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.08em;
   }
   .save-status{
-    font-family:'JetBrains Mono',monospace;
-    font-size:11px;
-    color:var(--ink-soft);
-    text-align:right;
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    color:var(--ink-soft);text-align:right;
   }
   .save-status.saving{color:var(--gold);}
   .save-status.saved{color:var(--you);}
@@ -67,11 +59,10 @@
   /* Names bar */
   .names-bar{
     display:grid;grid-template-columns:1fr 1fr;gap:0;
-    margin:18px 0 24px;
-    border:1px solid var(--line-strong);
-    background:var(--bg-panel);
+    margin-bottom:20px;
+    border:1px solid var(--line-strong);background:var(--bg-panel);
   }
-  .name-field{padding:12px 16px;position:relative;}
+  .name-field{padding:12px 16px;}
   .name-field:first-child{border-right:1px solid var(--line-strong);}
   .name-field label{
     font-family:'JetBrains Mono',monospace;font-size:10px;
@@ -85,88 +76,110 @@
   .name-field:first-child input{color:var(--you);}
   .name-field:last-child input{color:var(--her);}
 
-  /* Tabs */
+  /* Year + content layout */
+  .layout{display:flex;gap:0;align-items:flex-start;}
+
+  /* Year sidebar */
+  .year-sidebar{
+    flex-shrink:0;width:72px;
+    border:1px solid var(--line-strong);
+    background:var(--bg-panel);
+    margin-right:20px;
+  }
+  .year-sidebar-label{
+    font-family:'JetBrains Mono',monospace;font-size:9px;
+    text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-soft);
+    padding:10px 0 6px;text-align:center;border-bottom:1px solid var(--line);
+  }
+  .year-btn{
+    display:block;width:100%;
+    font-family:'Fraunces',serif;font-size:17px;font-weight:600;
+    text-align:center;padding:14px 0;cursor:pointer;
+    background:none;border:none;border-bottom:1px solid var(--line);
+    color:var(--ink-soft);transition:color .15s,background .15s;
+  }
+  .year-btn:last-child{border-bottom:none;}
+  .year-btn:hover{color:var(--ink);background:var(--bg);}
+  .year-btn.active{color:#fff;font-weight:700;}
+  .year-btn[data-year="2026"].active{background:#1F6F6B;box-shadow:inset 3px 0 0 #134744;}
+  .year-btn[data-year="2027"].active{background:#7A4869;box-shadow:inset 3px 0 0 #532f47;}
+  .year-btn[data-year="2028"].active{background:#B98B2E;box-shadow:inset 3px 0 0 #8a671f;}
+  .year-btn[data-year="2029"].active{background:#3B5BA5;box-shadow:inset 3px 0 0 #283f75;}
+
+  /* Main content area */
+  .main-content{flex:1;min-width:0;}
+
+  /* Inner tabs */
   .tabs{
     display:flex;gap:2px;margin-bottom:24px;
-    border-bottom:1px solid var(--line-strong);
+    border-bottom:1px solid var(--line-strong);flex-wrap:wrap;
   }
   .tab{
     font-family:'JetBrains Mono',monospace;
     font-size:12px;text-transform:uppercase;letter-spacing:0.06em;
-    padding:11px 16px;cursor:pointer;color:var(--ink-soft);
+    padding:11px 14px;cursor:pointer;color:var(--ink-soft);
     background:none;border:none;border-bottom:2px solid transparent;
-    margin-bottom:-1px;
-    transition:color .15s;
+    margin-bottom:-1px;transition:color .15s;
   }
   .tab:hover{color:var(--ink);}
-  .tab.active{color:var(--ink);border-bottom-color:var(--ink);font-weight:600;}
+  .tab.active{color:var(--year-color, var(--ink));border-bottom-color:var(--year-color, var(--ink));font-weight:600;}
+  h2.section-title{color:var(--year-color, var(--ink));}
+
+  .app[data-year="2026"]{--year-color:#1F6F6B;}
+  .app[data-year="2027"]{--year-color:#7A4869;}
+  .app[data-year="2028"]{--year-color:#B98B2E;}
+  .app[data-year="2029"]{--year-color:#3B5BA5;}
 
   .panel{display:none;}
-  .panel.active{display:block;animation:fadein .25s ease;}
+  .panel.active{display:block;animation:fadein .2s ease;}
   @keyframes fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
 
-  h2.section-title{
-    font-family:'Fraunces',serif;font-size:22px;font-weight:600;
-    margin:0 0 4px;
-  }
-  p.section-sub{
-    color:var(--ink-soft);font-size:13px;margin:0 0 20px;
-  }
+  h2.section-title{font-family:'Fraunces',serif;font-size:22px;font-weight:600;margin:0 0 4px;}
+  p.section-sub{color:var(--ink-soft);font-size:13px;margin:0 0 20px;}
 
-  /* Split entry layout: two columns for You / Her */
+  /* Split two-column */
   .split{
     display:grid;grid-template-columns:1fr 1px 1fr;gap:0;
     border:1px solid var(--line-strong);background:var(--bg-panel);
   }
   .split .col{padding:18px 20px;}
   .split .divider{background:var(--line-strong);}
-  .col-head{
-    display:flex;align-items:center;gap:8px;margin-bottom:14px;
-  }
+  .col-head{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
   .swatch{width:9px;height:9px;border-radius:50%;}
   .swatch.you{background:var(--you);}
   .swatch.her{background:var(--her);}
   .col-head span{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);}
 
-  .field-row{
-    display:flex;gap:8px;margin-bottom:8px;align-items:center;
-  }
+  .field-row{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
   .field-row input[type=text]{
     flex:1.4;padding:8px 10px;border:1px solid var(--line);background:#fff;
     font-family:'Inter',sans-serif;font-size:13px;border-radius:3px;
   }
   .field-row input[type=number]{
     flex:1;padding:8px 10px;border:1px solid var(--line);background:#fff;
-    font-family:'JetBrains Mono',monospace;font-size:13px;border-radius:3px;
-    min-width:0;
+    font-family:'JetBrains Mono',monospace;font-size:13px;border-radius:3px;min-width:0;
   }
   .field-row select{
     flex:0.9;padding:8px 6px;border:1px solid var(--line);background:#fff;
     font-family:'Inter',sans-serif;font-size:12px;border-radius:3px;
   }
   .field-row input:focus,.field-row select:focus{outline:1.5px solid var(--ink);}
-  .remove-btn{
-    background:none;border:none;color:var(--bad);cursor:pointer;font-size:16px;
-    width:22px;flex-shrink:0;line-height:1;
-  }
+  .remove-btn{background:none;border:none;color:var(--bad);cursor:pointer;font-size:16px;width:22px;flex-shrink:0;line-height:1;}
   .add-btn{
     font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;
     letter-spacing:0.05em;background:none;border:1px dashed var(--line-strong);
-    color:var(--ink-soft);padding:8px 12px;cursor:pointer;width:100%;margin-top:6px;
-    border-radius:3px;
+    color:var(--ink-soft);padding:8px 12px;cursor:pointer;width:100%;margin-top:6px;border-radius:3px;
   }
   .add-btn:hover{border-color:var(--ink);color:var(--ink);}
 
   .col-total{
     margin-top:14px;padding-top:12px;border-top:1px solid var(--line);
-    display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;
-    font-size:13px;
+    display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:13px;
   }
   .col-total b{font-size:16px;}
   .col:first-child .col-total b{color:var(--you);}
   .col:last-child .col-total b{color:var(--her);}
 
-  /* single income row simpler */
   .income-row{display:flex;align-items:center;gap:10px;}
   .income-row label{font-size:12px;color:var(--ink-soft);width:110px;flex-shrink:0;}
   .income-row input{
@@ -182,19 +195,15 @@
     padding:8px 8px;border-bottom:1px solid var(--line-strong);
   }
   .debt-table td{padding:6px 8px;border-bottom:1px solid var(--line);}
-  .debt-table input, .debt-table select{
+  .debt-table input,.debt-table select{
     width:100%;padding:6px 7px;border:1px solid var(--line);background:#fff;
     font-family:'Inter',sans-serif;font-size:12.5px;border-radius:3px;
   }
   .debt-table input[type=number]{font-family:'JetBrains Mono',monospace;}
-  .owner-tag-you{color:var(--you);font-weight:600;}
-  .owner-tag-her{color:var(--her);font-weight:600;}
 
-  /* Overview */
+  /* Stat cards */
   .stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:24px;}
-  .stat-card{
-    background:var(--bg-panel);border:1px solid var(--line-strong);padding:16px 18px;
-  }
+  .stat-card{background:var(--bg-panel);border:1px solid var(--line-strong);padding:16px 18px;}
   .stat-card .label{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);margin-bottom:8px;}
   .stat-card .value{font-family:'Fraunces',serif;font-size:28px;font-weight:600;}
   .stat-card .value.good{color:var(--you);}
@@ -215,21 +224,18 @@
   .compare-table td:first-child{text-align:left;font-family:'Inter',sans-serif;color:var(--ink);}
   .compare-table tr.total-row td{font-weight:700;border-top:1.5px solid var(--ink);border-bottom:none;font-size:14.5px;padding-top:12px;}
 
-  .confluence{
-    text-align:center;margin:34px 0 10px;position:relative;
-  }
-  .confluence-line{height:1px;background:var(--line-strong);position:relative;margin:0 auto;max-width:600px;}
+  .confluence{text-align:center;margin:34px 0 10px;position:relative;}
+  .confluence-line{height:1px;background:var(--line-strong);margin:0 auto;max-width:600px;}
   .confluence-label{
     font-family:'Fraunces',serif;font-style:italic;font-size:15px;color:var(--ink-soft);
     background:var(--bg);display:inline-block;padding:0 16px;position:relative;top:-11px;
   }
 
-  /* Monthly budget table */
+  /* Budget */
   .budget-table{width:100%;border-collapse:collapse;}
   .budget-table th{
     font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;
-    letter-spacing:0.05em;color:var(--ink-soft);text-align:right;padding:8px 10px;
-    border-bottom:2px solid var(--ink);
+    letter-spacing:0.05em;color:var(--ink-soft);text-align:right;padding:8px 10px;border-bottom:2px solid var(--ink);
   }
   .budget-table th:first-child{text-align:left;}
   .budget-table td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:right;}
@@ -245,36 +251,15 @@
 
   .empty-hint{color:var(--ink-soft);font-size:12px;font-style:italic;padding:6px 2px;}
 
-  /* Budget category blocks */
-  .cat-block{
-    border:1px solid var(--line-strong);background:var(--bg-panel);margin-bottom:16px;
-  }
-  .cat-head{
-    display:flex;justify-content:space-between;align-items:baseline;
-    padding:12px 16px;border-bottom:1px solid var(--line);
-  }
-  .cat-head h3{
-    font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin:0;
-  }
-  .cat-head .cat-subtotal{
-    font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-soft);
-  }
+  .cat-block{border:1px solid var(--line-strong);background:var(--bg-panel);margin-bottom:16px;}
+  .cat-head{display:flex;justify-content:space-between;align-items:baseline;padding:12px 16px;border-bottom:1px solid var(--line);}
+  .cat-head h3{font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin:0;}
+  .cat-head .cat-subtotal{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-soft);}
   .cat-body{padding:12px 16px;}
-  .cat-item-row{
-    display:grid;grid-template-columns:1.6fr 0.85fr 0.85fr 0.7fr 22px;
-    gap:8px;align-items:center;margin-bottom:8px;
-  }
-  .cat-item-row input[type=text]{
-    padding:7px 9px;border:1px solid var(--line);background:#fff;border-radius:3px;
-    font-family:'Inter',sans-serif;font-size:13px;min-width:0;
-  }
-  .cat-item-row input[type=number]{
-    padding:7px 9px;border:1px solid var(--line);background:#fff;border-radius:3px;
-    font-family:'JetBrains Mono',monospace;font-size:13px;text-align:right;min-width:0;
-  }
-  .cat-item-row .item-diff{
-    font-family:'JetBrains Mono',monospace;font-size:12.5px;text-align:right;padding-right:2px;
-  }
+  .cat-item-row{display:grid;grid-template-columns:1.6fr 0.85fr 0.85fr 0.7fr 22px;gap:8px;align-items:center;margin-bottom:8px;}
+  .cat-item-row input[type=text]{padding:7px 9px;border:1px solid var(--line);background:#fff;border-radius:3px;font-family:'Inter',sans-serif;font-size:13px;min-width:0;}
+  .cat-item-row input[type=number]{padding:7px 9px;border:1px solid var(--line);background:#fff;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:13px;text-align:right;min-width:0;}
+  .cat-item-row .item-diff{font-family:'JetBrains Mono',monospace;font-size:12.5px;text-align:right;padding-right:2px;}
   .cat-col-labels{
     display:grid;grid-template-columns:1.6fr 0.85fr 0.85fr 0.7fr 22px;gap:8px;
     font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;
@@ -282,19 +267,22 @@
   }
   .cat-col-labels span:not(:first-child){text-align:right;}
 
-  @media(max-width:640px){
+  @media(max-width:700px){
+    .layout{flex-direction:column;}
+    .year-sidebar{width:100%;display:flex;flex-direction:row;margin-right:0;margin-bottom:16px;}
+    .year-sidebar-label{display:none;}
+    .year-btn{border-bottom:none;border-right:1px solid var(--line);flex:1;padding:10px 0;}
+    .year-btn:last-child{border-right:none;}
     .split{grid-template-columns:1fr;}
     .split .divider{display:none;}
     .split .col:first-child{border-bottom:1px solid var(--line-strong);}
     .stat-grid{grid-template-columns:1fr;}
-    .compare-table{font-size:11px;}
-    .compare-table th, .compare-table td{padding:7px 6px;}
     .masthead h1{font-size:26px;}
   }
 </style>
 </head>
 <body>
-<div class="app">
+<div class="app" data-year="2026">
 
   <div class="masthead">
     <div>
@@ -315,223 +303,229 @@
     </div>
   </div>
 
-  <div class="tabs">
-    <button class="tab active" data-tab="overview">Overview</button>
-    <button class="tab" data-tab="income">Income</button>
-    <button class="tab" data-tab="weekly">Weekly Bills</button>
-    <button class="tab" data-tab="monthly">Monthly Bills</button>
-    <button class="tab" data-tab="budget">Monthly Budget</button>
-    <button class="tab" data-tab="debt">School Loans</button>
-    <button class="tab" data-tab="creditcar">Credit & Car Loans</button>
-  </div>
+  <div class="layout">
 
-  <!-- OVERVIEW -->
-  <div class="panel active" id="panel-overview">
-    <h2 class="section-title">The full picture</h2>
-    <p class="section-sub">Everything you enter across the other tabs rolls up here automatically.</p>
-
-    <div class="stat-grid">
-      <div class="stat-card">
-        <div class="label">Combined monthly income</div>
-        <div class="value" id="ovIncome">$0</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Combined monthly expenses</div>
-        <div class="value" id="ovExpenses">$0</div>
-        <div class="sub" id="ovExpensesSub">bills + minimum debt payments</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Combined monthly savings</div>
-        <div class="value" id="ovSavings">$0</div>
-        <div class="sub" id="ovSavingsSub"></div>
-      </div>
+    <!-- YEAR SIDEBAR -->
+    <div class="year-sidebar">
+      <div class="year-sidebar-label">Year</div>
+      <button class="year-btn active" data-year="2026" onclick="switchYear(2026)">2026</button>
+      <button class="year-btn" data-year="2027" onclick="switchYear(2027)">2027</button>
+      <button class="year-btn" data-year="2028" onclick="switchYear(2028)">2028</button>
+      <button class="year-btn" data-year="2029" onclick="switchYear(2029)">2029</button>
     </div>
 
-    <table class="compare-table">
-      <thead>
-        <tr>
-          <th>&nbsp;</th>
-          <th class="th-you" id="thYou">You</th>
-          <th class="th-her" id="thHer">Her</th>
-          <th class="th-combo">Combined</th>
-        </tr>
-      </thead>
-      <tbody id="compareBody"></tbody>
-    </table>
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
 
-    <div class="confluence">
-      <div class="confluence-line"></div>
-      <span class="confluence-label">where your two columns meet</span>
-    </div>
+      <div class="tabs">
+        <button class="tab active" data-tab="overview">Overview</button>
+        <button class="tab" data-tab="income">Income</button>
+        <button class="tab" data-tab="weekly">Weekly Bills</button>
+        <button class="tab" data-tab="monthly">Monthly Bills</button>
+        <button class="tab" data-tab="budget">Monthly Budget</button>
+        <button class="tab" data-tab="debt">School Loans</button>
+        <button class="tab" data-tab="creditcar">Credit & Car Loans</button>
+      </div>
 
-    <div class="stat-grid" style="grid-template-columns:1fr 1fr;">
-      <div class="stat-card">
-        <div class="label">Total debt owed (combined)</div>
-        <div class="value" id="ovDebt">$0</div>
-        <div class="sub" id="ovDebtSub"></div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Budget health</div>
-        <div class="value" id="ovHealth">—</div>
-        <div class="sub" id="ovHealthSub"></div>
-      </div>
-    </div>
-  </div>
+      <!-- OVERVIEW -->
+      <div class="panel active" id="panel-overview">
+        <h2 class="section-title">The full picture</h2>
+        <p class="section-sub">Everything you enter across the other tabs rolls up here automatically.</p>
 
-  <!-- INCOME -->
-  <div class="panel" id="panel-income">
-    <h2 class="section-title">Monthly income</h2>
-    <p class="section-sub">Take-home pay, after taxes. Add both of your primary and any side income.</p>
-    <div class="split">
-      <div class="col">
-        <div class="col-head"><span class="swatch you"></span><span id="incLabelYou">You</span></div>
-        <div class="income-row"><label>Primary job</label><input type="number" id="incYouPrimary" placeholder="0" oninput="recalc()"></div>
-        <div class="income-row" style="margin-top:8px;"><label>Other income</label><input type="number" id="incYouOther" placeholder="0" oninput="recalc()"></div>
-        <div class="col-total"><span>Monthly total</span><b id="incYouTotal">$0</b></div>
-      </div>
-      <div class="divider"></div>
-      <div class="col">
-        <div class="col-head"><span class="swatch her"></span><span id="incLabelHer">Her</span></div>
-        <div class="income-row"><label>Primary job</label><input type="number" id="incHerPrimary" placeholder="0" oninput="recalc()"></div>
-        <div class="income-row" style="margin-top:8px;"><label>Other income</label><input type="number" id="incHerOther" placeholder="0" oninput="recalc()"></div>
-        <div class="col-total"><span>Monthly total</span><b id="incHerTotal">$0</b></div>
-      </div>
-    </div>
-  </div>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="label">Combined monthly income</div>
+            <div class="value" id="ovIncome">$0</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Combined monthly expenses</div>
+            <div class="value" id="ovExpenses">$0</div>
+            <div class="sub">bills + minimum debt payments</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Combined monthly savings</div>
+            <div class="value" id="ovSavings">$0</div>
+            <div class="sub" id="ovSavingsSub"></div>
+          </div>
+        </div>
 
-  <!-- WEEKLY BILLS -->
-  <div class="panel" id="panel-weekly">
-    <h2 class="section-title">Weekly bills</h2>
-    <p class="section-sub">Things you pay weekly (groceries, gas, etc). We'll convert these to a monthly figure (×4.33) for the overview.</p>
-    <div class="split">
-      <div class="col">
-        <div class="col-head"><span class="swatch you"></span><span id="wkLabelYou">You</span></div>
-        <div id="wkYouList"></div>
-        <button class="add-btn" onclick="addRow('wkYou')">+ Add weekly bill</button>
-        <div class="col-total"><span>≈ Monthly</span><b id="wkYouTotal">$0</b></div>
-      </div>
-      <div class="divider"></div>
-      <div class="col">
-        <div class="col-head"><span class="swatch her"></span><span id="wkLabelHer">Her</span></div>
-        <div id="wkHerList"></div>
-        <button class="add-btn" onclick="addRow('wkHer')">+ Add weekly bill</button>
-        <div class="col-total"><span>≈ Monthly</span><b id="wkHerTotal">$0</b></div>
-      </div>
-    </div>
-  </div>
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>&nbsp;</th>
+              <th class="th-you" id="thYou">You</th>
+              <th class="th-her" id="thHer">Her</th>
+              <th class="th-combo">Combined</th>
+            </tr>
+          </thead>
+          <tbody id="compareBody"></tbody>
+        </table>
 
-  <!-- MONTHLY BILLS -->
-  <div class="panel" id="panel-monthly">
-    <h2 class="section-title">Monthly bills</h2>
-    <p class="section-sub">Rent/mortgage, utilities, insurance, subscriptions, anything billed monthly.</p>
-    <div class="split">
-      <div class="col">
-        <div class="col-head"><span class="swatch you"></span><span id="moLabelYou">You</span></div>
-        <div id="moYouList"></div>
-        <button class="add-btn" onclick="addRow('moYou')">+ Add monthly bill</button>
-        <div class="col-total"><span>Monthly total</span><b id="moYouTotal">$0</b></div>
-      </div>
-      <div class="divider"></div>
-      <div class="col">
-        <div class="col-head"><span class="swatch her"></span><span id="moLabelHer">Her</span></div>
-        <div id="moHerList"></div>
-        <button class="add-btn" onclick="addRow('moHer')">+ Add monthly bill</button>
-        <div class="col-total"><span>Monthly total</span><b id="moHerTotal">$0</b></div>
-      </div>
-    </div>
-  </div>
+        <div class="confluence">
+          <div class="confluence-line"></div>
+          <span class="confluence-label">where your two columns meet</span>
+        </div>
 
-  <!-- MONTHLY BUDGET (projected/actual/diff) -->
-  <div class="panel" id="panel-budget">
-    <h2 class="section-title">Monthly budget: projected vs. actual</h2>
-    <p class="section-sub">Add each bill or purchase under its category, set what you expect to spend, then log what actually happened.</p>
-    <div id="budgetCategories"></div>
-
-    <table class="budget-table" style="margin-top:8px;">
-      <tbody>
-        <tr class="total-row">
-          <td>Grand total</td>
-          <td id="budTotalProj">$0</td>
-          <td id="budTotalAct">$0</td>
-          <td id="budTotalDiff">$0</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- SCHOOL LOANS -->
-  <div class="panel" id="panel-debt">
-    <h2 class="section-title">School loans</h2>
-    <p class="section-sub">Student loans of any kind. Feeds into your combined debt total on the overview.</p>
-    <table class="debt-table">
-      <thead>
-        <tr><th style="width:26%">Name</th><th style="width:14%">Owner</th><th style="width:14%">Type</th><th style="width:15%">Amount owed</th><th style="width:14%">Interest rate</th><th style="width:15%">Min. payment</th><th></th></tr>
-      </thead>
-      <tbody id="debtBody"></tbody>
-    </table>
-    <button class="add-btn" onclick="addDebtRow('school')">+ Add school loan</button>
-
-    <div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:24px;">
-      <div class="stat-card">
-        <div class="label">Total owed</div>
-        <div class="value" id="debtTotalOwed">$0</div>
+        <div class="stat-grid" style="grid-template-columns:1fr 1fr;">
+          <div class="stat-card">
+            <div class="label">Total debt owed (combined)</div>
+            <div class="value" id="ovDebt">$0</div>
+            <div class="sub" id="ovDebtSub"></div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Budget health</div>
+            <div class="value" id="ovHealth">—</div>
+            <div class="sub" id="ovHealthSub"></div>
+          </div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="label">Total min. monthly payments</div>
-        <div class="value" id="debtTotalMin">$0</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Weighted avg. interest</div>
-        <div class="value" id="debtAvgRate">0%</div>
-      </div>
-    </div>
-  </div>
 
-  <!-- CREDIT & CAR LOANS -->
-  <div class="panel" id="panel-creditcar">
-    <h2 class="section-title">Credit & car loans</h2>
-    <p class="section-sub">Credit cards, auto loans, personal loans — anything non-school. Also feeds your combined debt total.</p>
-    <table class="debt-table">
-      <thead>
-        <tr><th style="width:26%">Name</th><th style="width:14%">Owner</th><th style="width:14%">Type</th><th style="width:15%">Amount owed</th><th style="width:14%">Interest rate</th><th style="width:15%">Min. payment</th><th></th></tr>
-      </thead>
-      <tbody id="creditcarBody"></tbody>
-    </table>
-    <button class="add-btn" onclick="addDebtRow('creditcar')">+ Add credit / car loan</button>
+      <!-- INCOME -->
+      <div class="panel" id="panel-income">
+        <h2 class="section-title">Monthly income</h2>
+        <p class="section-sub">Take-home pay, after taxes. Add both primary and any side income.</p>
+        <div class="split">
+          <div class="col">
+            <div class="col-head"><span class="swatch you"></span><span id="incLabelYou">You</span></div>
+            <div class="income-row"><label>Primary job</label><input type="number" id="incYouPrimary" placeholder="0" oninput="onIncomeInput()"></div>
+            <div class="income-row" style="margin-top:8px;"><label>Other income</label><input type="number" id="incYouOther" placeholder="0" oninput="onIncomeInput()"></div>
+            <div class="col-total"><span>Monthly total</span><b id="incYouTotal">$0</b></div>
+          </div>
+          <div class="divider"></div>
+          <div class="col">
+            <div class="col-head"><span class="swatch her"></span><span id="incLabelHer">Her</span></div>
+            <div class="income-row"><label>Primary job</label><input type="number" id="incHerPrimary" placeholder="0" oninput="onIncomeInput()"></div>
+            <div class="income-row" style="margin-top:8px;"><label>Other income</label><input type="number" id="incHerOther" placeholder="0" oninput="onIncomeInput()"></div>
+            <div class="col-total"><span>Monthly total</span><b id="incHerTotal">$0</b></div>
+          </div>
+        </div>
+      </div>
 
-    <div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:24px;">
-      <div class="stat-card">
-        <div class="label">Total owed</div>
-        <div class="value" id="creditcarTotalOwed">$0</div>
+      <!-- WEEKLY BILLS -->
+      <div class="panel" id="panel-weekly">
+        <h2 class="section-title">Weekly bills</h2>
+        <p class="section-sub">Things you pay weekly. Converted to monthly (×4.33) for the overview.</p>
+        <div class="split">
+          <div class="col">
+            <div class="col-head"><span class="swatch you"></span><span id="wkLabelYou">You</span></div>
+            <div id="wkYouList"></div>
+            <button class="add-btn" onclick="addRow('wkYou')">+ Add weekly bill</button>
+            <div class="col-total"><span>≈ Monthly</span><b id="wkYouTotal">$0</b></div>
+          </div>
+          <div class="divider"></div>
+          <div class="col">
+            <div class="col-head"><span class="swatch her"></span><span id="wkLabelHer">Her</span></div>
+            <div id="wkHerList"></div>
+            <button class="add-btn" onclick="addRow('wkHer')">+ Add weekly bill</button>
+            <div class="col-total"><span>≈ Monthly</span><b id="wkHerTotal">$0</b></div>
+          </div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="label">Total min. monthly payments</div>
-        <div class="value" id="creditcarTotalMin">$0</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Weighted avg. interest</div>
-        <div class="value" id="creditcarAvgRate">0%</div>
-      </div>
-    </div>
-  </div>
 
-</div>
+      <!-- MONTHLY BILLS -->
+      <div class="panel" id="panel-monthly">
+        <h2 class="section-title">Monthly bills</h2>
+        <p class="section-sub">Rent/mortgage, utilities, insurance, subscriptions, anything billed monthly.</p>
+        <div class="split">
+          <div class="col">
+            <div class="col-head"><span class="swatch you"></span><span id="moLabelYou">You</span></div>
+            <div id="moYouList"></div>
+            <button class="add-btn" onclick="addRow('moYou')">+ Add monthly bill</button>
+            <div class="col-total"><span>Monthly total</span><b id="moYouTotal">$0</b></div>
+          </div>
+          <div class="divider"></div>
+          <div class="col">
+            <div class="col-head"><span class="swatch her"></span><span id="moLabelHer">Her</span></div>
+            <div id="moHerList"></div>
+            <button class="add-btn" onclick="addRow('moHer')">+ Add monthly bill</button>
+            <div class="col-total"><span>Monthly total</span><b id="moHerTotal">$0</b></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MONTHLY BUDGET -->
+      <div class="panel" id="panel-budget">
+        <h2 class="section-title">Monthly budget: projected vs. actual</h2>
+        <p class="section-sub">Set what you expect to spend, then log what actually happened.</p>
+        <div id="budgetCategories"></div>
+        <table class="budget-table" style="margin-top:8px;">
+          <tbody>
+            <tr class="total-row">
+              <td>Grand total</td>
+              <td id="budTotalProj">$0</td>
+              <td id="budTotalAct">$0</td>
+              <td id="budTotalDiff">$0</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- SCHOOL LOANS -->
+      <div class="panel" id="panel-debt">
+        <h2 class="section-title">School loans</h2>
+        <p class="section-sub">Student loans of any kind. Feeds into your combined debt total.</p>
+        <table class="debt-table">
+          <thead>
+            <tr><th style="width:26%">Name</th><th style="width:14%">Owner</th><th style="width:14%">Type</th><th style="width:15%">Amount owed</th><th style="width:14%">Interest rate</th><th style="width:15%">Min. payment</th><th></th></tr>
+          </thead>
+          <tbody id="debtBody"></tbody>
+        </table>
+        <button class="add-btn" onclick="addDebtRow('school')">+ Add school loan</button>
+        <div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:24px;">
+          <div class="stat-card"><div class="label">Total owed</div><div class="value" id="debtTotalOwed">$0</div></div>
+          <div class="stat-card"><div class="label">Total min. monthly payments</div><div class="value" id="debtTotalMin">$0</div></div>
+          <div class="stat-card"><div class="label">Weighted avg. interest</div><div class="value" id="debtAvgRate">0%</div></div>
+        </div>
+      </div>
+
+      <!-- CREDIT & CAR LOANS -->
+      <div class="panel" id="panel-creditcar">
+        <h2 class="section-title">Credit & car loans</h2>
+        <p class="section-sub">Credit cards, auto loans, personal loans — anything non-school. Also feeds your combined debt total.</p>
+        <table class="debt-table">
+          <thead>
+            <tr><th style="width:26%">Name</th><th style="width:14%">Owner</th><th style="width:14%">Type</th><th style="width:15%">Amount owed</th><th style="width:14%">Interest rate</th><th style="width:15%">Min. payment</th><th></th></tr>
+          </thead>
+          <tbody id="creditcarBody"></tbody>
+        </table>
+        <button class="add-btn" onclick="addDebtRow('creditcar')">+ Add credit / car loan</button>
+        <div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:24px;">
+          <div class="stat-card"><div class="label">Total owed</div><div class="value" id="creditcarTotalOwed">$0</div></div>
+          <div class="stat-card"><div class="label">Total min. monthly payments</div><div class="value" id="creditcarTotalMin">$0</div></div>
+          <div class="stat-card"><div class="label">Weighted avg. interest</div><div class="value" id="creditcarAvgRate">0%</div></div>
+        </div>
+      </div>
+
+    </div><!-- /main-content -->
+  </div><!-- /layout -->
+</div><!-- /app -->
 
 <script>
 const CATEGORIES = ["Home","Transportation","Daily Living","Entertainment","Health","Subscriptions"];
-const DEBT_TYPES = ["Student Loan","Auto Loan","Credit Card","Personal Loan","Other"];
 const SCHOOL_TYPES = ["Federal Subsidized","Federal Unsubsidized","PLUS Loan","Private Student Loan","Other"];
 const CREDITCAR_TYPES = ["Credit Card","Auto Loan","Personal Loan","Other"];
+const YEARS = [2026, 2027, 2028, 2029];
+
+function defaultYearData(){
+  return {
+    income: { youPrimary:0, youOther:0, herPrimary:0, herOther:0 },
+    weekly: { you:[], her:[] },
+    monthly: { you:[], her:[] },
+    budgetItems: Object.fromEntries(CATEGORIES.map(c=>[c,[]])),
+    debts: [],
+    creditcars: []
+  };
+}
 
 let state = {
   names: { you:"You", her:"Her" },
-  income: { youPrimary:0, youOther:0, herPrimary:0, herOther:0 },
-  weekly: { you:[], her:[] },
-  monthly: { you:[], her:[] },
-  budgetItems: Object.fromEntries(CATEGORIES.map(c=>[c,[]])),
-  debts: [],
-  creditcars: []
+  years: Object.fromEntries(YEARS.map(y=>[y, defaultYearData()]))
 };
+
+let activeYear = 2026;
+let activeTab = 'overview';
+
+function yr(){ return state.years[activeYear]; }
 
 let rowIdCounter = 1;
 function newId(){ return 'r'+(rowIdCounter++)+'_'+Math.random().toString(36).slice(2,7); }
@@ -590,20 +584,31 @@ function scheduleSave(){
 }
 
 function migrateLoaded(loaded){
-  state = Object.assign(state, loaded);
-  if(state.budget && !state.budgetItems){
-    state.budgetItems = Object.fromEntries(CATEGORIES.map(c=>[c,[]]));
-    state.budget.forEach(b=>{
-      if(b.category && (b.projected||b.actual)){
-        state.budgetItems[b.category] = state.budgetItems[b.category] || [];
-        state.budgetItems[b.category].push({id:newId(), name:'General', projected:b.projected||0, actual:b.actual||0});
+  if(loaded.names) state.names = loaded.names;
+  if(loaded.years){
+    YEARS.forEach(y=>{
+      if(loaded.years[y]){
+        const src = loaded.years[y];
+        const dst = state.years[y];
+        dst.income = src.income || dst.income;
+        dst.weekly = src.weekly || dst.weekly;
+        dst.monthly = src.monthly || dst.monthly;
+        dst.debts = src.debts || dst.debts;
+        dst.creditcars = src.creditcars || dst.creditcars;
+        dst.budgetItems = src.budgetItems || dst.budgetItems;
+        CATEGORIES.forEach(c=>{ if(!dst.budgetItems[c]) dst.budgetItems[c] = []; });
       }
     });
-    delete state.budget;
+  } else if(loaded.income || loaded.debts || loaded.weekly) {
+    // migrate old flat state into 2026
+    const y = state.years[2026];
+    if(loaded.income) y.income = loaded.income;
+    if(loaded.weekly) y.weekly = loaded.weekly;
+    if(loaded.monthly) y.monthly = loaded.monthly;
+    if(loaded.debts) y.debts = loaded.debts;
+    if(loaded.creditcars) y.creditcars = loaded.creditcars;
+    if(loaded.budgetItems){ y.budgetItems = loaded.budgetItems; CATEGORIES.forEach(c=>{ if(!y.budgetItems[c]) y.budgetItems[c] = []; }); }
   }
-  if(!state.budgetItems) state.budgetItems = Object.fromEntries(CATEGORIES.map(c=>[c,[]]));
-  CATEGORIES.forEach(c=>{ if(!state.budgetItems[c]) state.budgetItems[c] = []; });
-  if(!state.creditcars) state.creditcars = [];
 }
 
 async function loadState(){
@@ -611,7 +616,7 @@ async function loadState(){
   el.textContent = 'connecting…'; el.className='save-status saving';
   try{
     const res = await sbFetch('/rest/v1/ledger_state?id=eq.'+ROW_ID+'&select=data', {
-      headers: { 'Accept': 'application/json' }
+      headers:{ 'Accept':'application/json' }
     });
     const rows = await res.json();
     if(rows && rows[0] && rows[0].data && Object.keys(rows[0].data).length > 0){
@@ -627,7 +632,6 @@ async function loadState(){
 }
 
 function startRealtimeSync(){
-  // Poll every 8 seconds for changes from the other person
   setInterval(async ()=>{
     if(ignoreNextRemote){ ignoreNextRemote = false; return; }
     try{
@@ -643,13 +647,24 @@ function startRealtimeSync(){
   }, 8000);
 }
 
+// ---------- YEAR SWITCHING ----------
+function switchYear(y){
+  activeYear = y;
+  document.querySelectorAll('.year-btn').forEach(b=>{
+    b.classList.toggle('active', parseInt(b.dataset.year)===y);
+  });
+  document.querySelector('.app').dataset.year = y;
+  render();
+}
+
 // ---------- TABS ----------
 document.querySelectorAll('.tab').forEach(t=>{
   t.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
     t.classList.add('active');
-    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+    activeTab = t.dataset.tab;
+    document.getElementById('panel-'+activeTab).classList.add('active');
   });
 });
 
@@ -668,10 +683,26 @@ function applyNameLabels(){
   document.getElementById('thHer').textContent = her;
 }
 
-// ---------- ROW BUILDERS (weekly/monthly bills) ----------
+// ---------- INCOME ----------
+function onIncomeInput(){
+  yr().income.youPrimary = parseFloat(document.getElementById('incYouPrimary').value)||0;
+  yr().income.youOther   = parseFloat(document.getElementById('incYouOther').value)||0;
+  yr().income.herPrimary = parseFloat(document.getElementById('incHerPrimary').value)||0;
+  yr().income.herOther   = parseFloat(document.getElementById('incHerOther').value)||0;
+  recalc();
+}
+function syncIncomeInputs(){
+  const inc = yr().income;
+  document.getElementById('incYouPrimary').value = inc.youPrimary || '';
+  document.getElementById('incYouOther').value   = inc.youOther || '';
+  document.getElementById('incHerPrimary').value = inc.herPrimary || '';
+  document.getElementById('incHerOther').value   = inc.herOther || '';
+}
+
+// ---------- BILLS ----------
 function addRow(prefix, data){
   const owner = prefix.includes('You') ? 'you' : 'her';
-  const bucket = prefix.startsWith('wk') ? state.weekly : state.monthly;
+  const bucket = prefix.startsWith('wk') ? yr().weekly : yr().monthly;
   const row = data || { id:newId(), name:'', amount:0 };
   bucket[owner].push(row);
   renderBillList(prefix);
@@ -679,13 +710,11 @@ function addRow(prefix, data){
 }
 function renderBillList(prefix){
   const owner = prefix.includes('You') ? 'you' : 'her';
-  const bucket = prefix.startsWith('wk') ? state.weekly : state.monthly;
+  const bucket = prefix.startsWith('wk') ? yr().weekly : yr().monthly;
   const list = bucket[owner];
   const el = document.getElementById(prefix+'List');
-  if(list.length===0){
-    el.innerHTML = '<div class="empty-hint">Nothing added yet.</div>';
-    return;
-  }
+  if(!el) return;
+  if(list.length===0){ el.innerHTML='<div class="empty-hint">Nothing added yet.</div>'; return; }
   el.innerHTML = list.map(r=>`
     <div class="field-row">
       <input type="text" placeholder="e.g. Groceries" value="${escapeHtml(r.name)}" oninput="updateBillField('${prefix}','${r.id}','name',this.value)">
@@ -696,40 +725,37 @@ function renderBillList(prefix){
 }
 function updateBillField(prefix, id, field, value){
   const owner = prefix.includes('You') ? 'you' : 'her';
-  const bucket = prefix.startsWith('wk') ? state.weekly : state.monthly;
+  const bucket = prefix.startsWith('wk') ? yr().weekly : yr().monthly;
   const row = bucket[owner].find(r=>r.id===id);
   if(row){ row[field] = field==='amount' ? parseFloat(value)||0 : value; }
   recalc();
 }
 function removeBillRow(prefix, id){
   const owner = prefix.includes('You') ? 'you' : 'her';
-  const bucket = prefix.startsWith('wk') ? state.weekly : state.monthly;
+  const bucket = prefix.startsWith('wk') ? yr().weekly : yr().monthly;
   bucket[owner] = bucket[owner].filter(r=>r.id!==id);
   renderBillList(prefix);
   recalc();
 }
 
-// ---------- DEBT (shared logic for both pools) ----------
+// ---------- DEBT ----------
 function addDebtRow(pool, data){
   const types = pool==='creditcar' ? CREDITCAR_TYPES : SCHOOL_TYPES;
   const row = data || { id:newId(), name:'', owner:'you', type:types[0], amount:0, rate:0, minPay:0 };
-  if(pool==='creditcar') state.creditcars.push(row);
-  else state.debts.push(row);
+  if(pool==='creditcar') yr().creditcars.push(row);
+  else yr().debts.push(row);
   renderDebtTable(pool);
   recalc();
 }
 function renderDebtTable(pool){
   pool = pool || 'school';
-  const list = pool==='creditcar' ? state.creditcars : state.debts;
+  const list = pool==='creditcar' ? yr().creditcars : yr().debts;
   const bodyId = pool==='creditcar' ? 'creditcarBody' : 'debtBody';
   const types = pool==='creditcar' ? CREDITCAR_TYPES : SCHOOL_TYPES;
   const emptyLabel = pool==='creditcar' ? 'No credit or car loans added yet.' : 'No school loans added yet.';
   const el = document.getElementById(bodyId);
   if(!el) return;
-  if(list.length===0){
-    el.innerHTML = `<tr><td colspan="7"><div class="empty-hint">${emptyLabel}</div></td></tr>`;
-    return;
-  }
+  if(list.length===0){ el.innerHTML=`<tr><td colspan="7"><div class="empty-hint">${emptyLabel}</div></td></tr>`; return; }
   el.innerHTML = list.map(d=>`
     <tr>
       <td><input type="text" placeholder="e.g. Sallie Mae" value="${escapeHtml(d.name)}" oninput="updateDebtField('${pool}','${d.id}','name',this.value)"></td>
@@ -752,7 +778,7 @@ function renderDebtTable(pool){
   `).join('');
 }
 function updateDebtField(pool, id, field, value){
-  const list = pool==='creditcar' ? state.creditcars : state.debts;
+  const list = pool==='creditcar' ? yr().creditcars : yr().debts;
   const row = list.find(d=>d.id===id);
   if(row){
     if(field==='amount'||field==='rate'||field==='minPay') row[field]=parseFloat(value)||0;
@@ -761,17 +787,17 @@ function updateDebtField(pool, id, field, value){
   recalc();
 }
 function removeDebtRow(pool, id){
-  if(pool==='creditcar') state.creditcars = state.creditcars.filter(d=>d.id!==id);
-  else state.debts = state.debts.filter(d=>d.id!==id);
+  if(pool==='creditcar') yr().creditcars = yr().creditcars.filter(d=>d.id!==id);
+  else yr().debts = yr().debts.filter(d=>d.id!==id);
   renderDebtTable(pool);
   recalc();
 }
 
-// ---------- BUDGET CATEGORY BLOCKS ----------
+// ---------- BUDGET ----------
 function renderBudgetTable(){
   const el = document.getElementById('budgetCategories');
   el.innerHTML = CATEGORIES.map(cat=>{
-    const items = state.budgetItems[cat] || [];
+    const items = yr().budgetItems[cat] || [];
     const rows = items.length ? items.map(it=>`
       <div class="cat-item-row" data-item="${it.id}">
         <input type="text" placeholder="e.g. Groceries" value="${escapeHtml(it.name)}" oninput="updateBudgetItem('${cat}','${it.id}','name',this.value)">
@@ -797,42 +823,23 @@ function renderBudgetTable(){
   }).join('');
 }
 function addBudgetItem(cat){
-  state.budgetItems[cat] = state.budgetItems[cat] || [];
-  state.budgetItems[cat].push({id:newId(), name:'', projected:0, actual:0});
+  yr().budgetItems[cat] = yr().budgetItems[cat] || [];
+  yr().budgetItems[cat].push({id:newId(), name:'', projected:0, actual:0});
   renderBudgetTable();
   recalc();
 }
 function updateBudgetItem(cat, id, field, value){
-  const item = (state.budgetItems[cat]||[]).find(i=>i.id===id);
-  if(item){
-    item[field] = (field==='projected'||field==='actual') ? (parseFloat(value)||0) : value;
-  }
+  const item = (yr().budgetItems[cat]||[]).find(i=>i.id===id);
+  if(item){ item[field] = (field==='projected'||field==='actual') ? (parseFloat(value)||0) : value; }
   recalc();
 }
 function removeBudgetItem(cat, id){
-  state.budgetItems[cat] = (state.budgetItems[cat]||[]).filter(i=>i.id!==id);
+  yr().budgetItems[cat] = (yr().budgetItems[cat]||[]).filter(i=>i.id!==id);
   renderBudgetTable();
   recalc();
 }
 
-// ---------- INCOME FIELDS ----------
-function syncIncomeInputs(){
-  document.getElementById('incYouPrimary').value = state.income.youPrimary || '';
-  document.getElementById('incYouOther').value = state.income.youOther || '';
-  document.getElementById('incHerPrimary').value = state.income.herPrimary || '';
-  document.getElementById('incHerOther').value = state.income.herOther || '';
-}
-['incYouPrimary','incYouOther','incHerPrimary','incHerOther'].forEach(id=>{
-  document.addEventListener('DOMContentLoaded', ()=>{
-    document.getElementById(id).addEventListener('input', e=>{
-      const map = {incYouPrimary:'youPrimary',incYouOther:'youOther',incHerPrimary:'herPrimary',incHerOther:'herOther'};
-      state.income[map[id]] = parseFloat(e.target.value)||0;
-      recalc();
-    });
-  });
-});
-
-// ---------- CALC + RENDER ----------
+// ---------- CALC ----------
 function fmt(n){
   const v = Math.round(n||0);
   return (v<0?'-$':'$') + Math.abs(v).toLocaleString();
@@ -842,51 +849,51 @@ function escapeHtml(s){
 }
 
 function recalc(){
-  const you = state.names.you, her = state.names.her;
+  const y = yr();
+  const inc = y.income;
 
-  const incYou = (state.income.youPrimary||0) + (state.income.youOther||0);
-  const incHer = (state.income.herPrimary||0) + (state.income.herOther||0);
+  const incYou = (inc.youPrimary||0) + (inc.youOther||0);
+  const incHer = (inc.herPrimary||0) + (inc.herOther||0);
   document.getElementById('incYouTotal').textContent = fmt(incYou);
   document.getElementById('incHerTotal').textContent = fmt(incHer);
 
-  const wkYouSum = state.weekly.you.reduce((s,r)=>s+(r.amount||0),0) * 4.33;
-  const wkHerSum = state.weekly.her.reduce((s,r)=>s+(r.amount||0),0) * 4.33;
+  const wkYouSum = y.weekly.you.reduce((s,r)=>s+(r.amount||0),0) * 4.33;
+  const wkHerSum = y.weekly.her.reduce((s,r)=>s+(r.amount||0),0) * 4.33;
   document.getElementById('wkYouTotal').textContent = fmt(wkYouSum);
   document.getElementById('wkHerTotal').textContent = fmt(wkHerSum);
 
-  const moYouSum = state.monthly.you.reduce((s,r)=>s+(r.amount||0),0);
-  const moHerSum = state.monthly.her.reduce((s,r)=>s+(r.amount||0),0);
+  const moYouSum = y.monthly.you.reduce((s,r)=>s+(r.amount||0),0);
+  const moHerSum = y.monthly.her.reduce((s,r)=>s+(r.amount||0),0);
   document.getElementById('moYouTotal').textContent = fmt(moYouSum);
   document.getElementById('moHerTotal').textContent = fmt(moHerSum);
 
-  const allDebts = [...state.debts, ...(state.creditcars||[])];
-
-  // School loans tab stats
-  const schoolYouMin = state.debts.filter(d=>d.owner==='you').reduce((s,d)=>s+(d.minPay||0),0);
-  const schoolHerMin = state.debts.filter(d=>d.owner==='her').reduce((s,d)=>s+(d.minPay||0),0);
-  const schoolOwed = state.debts.reduce((s,d)=>s+(d.amount||0),0);
-  const schoolMin = schoolYouMin + schoolHerMin;
-  const schoolRate = schoolOwed>0 ? state.debts.reduce((s,d)=>s+(d.amount||0)*(d.rate||0),0)/schoolOwed : 0;
+  // School loans
+  const schoolOwed = y.debts.reduce((s,d)=>s+(d.amount||0),0);
+  const schoolMin  = y.debts.reduce((s,d)=>s+(d.minPay||0),0);
+  const schoolRate = schoolOwed>0 ? y.debts.reduce((s,d)=>s+(d.amount||0)*(d.rate||0),0)/schoolOwed : 0;
+  const schoolYouMin = y.debts.filter(d=>d.owner==='you').reduce((s,d)=>s+(d.minPay||0),0);
+  const schoolHerMin = y.debts.filter(d=>d.owner==='her').reduce((s,d)=>s+(d.minPay||0),0);
   document.getElementById('debtTotalOwed').textContent = fmt(schoolOwed);
-  document.getElementById('debtTotalMin').textContent = fmt(schoolMin);
-  document.getElementById('debtAvgRate').textContent = schoolRate.toFixed(2)+'%';
+  document.getElementById('debtTotalMin').textContent  = fmt(schoolMin);
+  document.getElementById('debtAvgRate').textContent   = schoolRate.toFixed(2)+'%';
 
-  // Credit & car loans tab stats
-  const cc = state.creditcars||[];
+  // Credit & car loans
+  const cc = y.creditcars || [];
+  const ccOwed = cc.reduce((s,d)=>s+(d.amount||0),0);
+  const ccMin  = cc.reduce((s,d)=>s+(d.minPay||0),0);
+  const ccRate = ccOwed>0 ? cc.reduce((s,d)=>s+(d.amount||0)*(d.rate||0),0)/ccOwed : 0;
   const ccYouMin = cc.filter(d=>d.owner==='you').reduce((s,d)=>s+(d.minPay||0),0);
   const ccHerMin = cc.filter(d=>d.owner==='her').reduce((s,d)=>s+(d.minPay||0),0);
-  const ccOwed = cc.reduce((s,d)=>s+(d.amount||0),0);
-  const ccMin = ccYouMin + ccHerMin;
-  const ccRate = ccOwed>0 ? cc.reduce((s,d)=>s+(d.amount||0)*(d.rate||0),0)/ccOwed : 0;
   document.getElementById('creditcarTotalOwed').textContent = fmt(ccOwed);
-  document.getElementById('creditcarTotalMin').textContent = fmt(ccMin);
-  document.getElementById('creditcarAvgRate').textContent = ccRate.toFixed(2)+'%';
+  document.getElementById('creditcarTotalMin').textContent  = fmt(ccMin);
+  document.getElementById('creditcarAvgRate').textContent   = ccRate.toFixed(2)+'%';
 
-  // Combined across both pools
+  // Combined debt
   const debtYouMin = schoolYouMin + ccYouMin;
   const debtHerMin = schoolHerMin + ccHerMin;
-  const totalOwed = schoolOwed + ccOwed;
-  const totalMin = schoolMin + ccMin;
+  const totalOwed  = schoolOwed + ccOwed;
+  const totalMin   = schoolMin + ccMin;
+  const allDebts   = [...y.debts, ...cc];
   const weightedRate = totalOwed>0 ? allDebts.reduce((s,d)=>s+(d.amount||0)*(d.rate||0),0)/totalOwed : 0;
 
   const expYou = wkYouSum + moYouSum + debtYouMin;
@@ -907,13 +914,12 @@ function recalc(){
     <tr class="total-row"><td>Net savings</td><td>${fmt(savYou)}</td><td>${fmt(savHer)}</td><td>${fmt(savYou+savHer)}</td></tr>
   `;
 
-  // Overview stats
   document.getElementById('ovIncome').textContent = fmt(incYou+incHer);
   document.getElementById('ovExpenses').textContent = fmt(expYou+expHer);
   const totalSavings = savYou+savHer;
   const savEl = document.getElementById('ovSavings');
   savEl.textContent = fmt(totalSavings);
-  savEl.className = 'value ' + (totalSavings>=0 ? 'good':'bad');
+  savEl.className = 'value '+(totalSavings>=0?'good':'bad');
   const totalIncome = incYou+incHer;
   const savRate = totalIncome>0 ? (totalSavings/totalIncome*100) : 0;
   document.getElementById('ovSavingsSub').textContent = totalIncome>0 ? `${savRate.toFixed(0)}% of combined income` : 'Add income to see rate';
@@ -937,30 +943,27 @@ function recalc(){
     healthSub.textContent='Combined expenses exceed combined income';
   }
 
-  // Budget category items: per-item diff, per-category subtotal, grand total
+  // Budget
   let totProj=0, totAct=0;
   CATEGORIES.forEach(cat=>{
-    const items = state.budgetItems[cat] || [];
+    const items = yr().budgetItems[cat] || [];
     let catProj=0, catAct=0;
     items.forEach(it=>{
       const diff = (it.projected||0)-(it.actual||0);
       catProj += it.projected||0; catAct += it.actual||0;
       const cell = document.getElementById('itemDiff_'+it.id);
-      if(cell){
-        cell.textContent = fmt(diff);
-        cell.className = 'item-diff ' + (diff>=0?'diff-pos':'diff-neg');
-      }
+      if(cell){ cell.textContent=fmt(diff); cell.className='item-diff '+(diff>=0?'diff-pos':'diff-neg'); }
     });
     totProj += catProj; totAct += catAct;
     const subEl = document.getElementById('catSub_'+cat.replace(/\s+/g,''));
-    if(subEl) subEl.textContent = `Proj ${fmt(catProj)} · Act ${fmt(catAct)}`;
+    if(subEl) subEl.textContent=`Proj ${fmt(catProj)} · Act ${fmt(catAct)}`;
   });
   document.getElementById('budTotalProj').textContent = fmt(totProj);
-  document.getElementById('budTotalAct').textContent = fmt(totAct);
+  document.getElementById('budTotalAct').textContent  = fmt(totAct);
   const totDiff = totProj-totAct;
   const totDiffEl = document.getElementById('budTotalDiff');
   totDiffEl.textContent = fmt(totDiff);
-  totDiffEl.className = totDiff>=0 ? 'diff-pos':'diff-neg';
+  totDiffEl.className = totDiff>=0?'diff-pos':'diff-neg';
 
   scheduleSave();
 }
