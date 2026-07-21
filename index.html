@@ -112,14 +112,16 @@
   /* Inner tabs */
   .tabs{
     display:flex;gap:2px;margin-bottom:24px;
-    border-bottom:1px solid var(--line-strong);flex-wrap:wrap;
+    border-bottom:1px solid var(--line-strong);flex-wrap:nowrap;
   }
   .tab{
     font-family:'JetBrains Mono',monospace;
-    font-size:12px;text-transform:uppercase;letter-spacing:0.06em;
-    padding:11px 14px;cursor:pointer;color:var(--ink-soft);
+    font-size:10.5px;text-transform:uppercase;letter-spacing:0.03em;
+    padding:10px 4px;cursor:pointer;color:var(--ink-soft);
     background:none;border:none;border-bottom:2px solid transparent;
     margin-bottom:-1px;transition:color .15s;
+    flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    text-align:center;
   }
   .tab:hover{color:var(--ink);}
   .tab.active{color:var(--year-color, var(--ink));border-bottom-color:var(--year-color, var(--ink));font-weight:600;}
@@ -254,6 +256,25 @@
   .budget-table tr.total-row td:first-child{font-family:'Inter',sans-serif;}
 
   .empty-hint{color:var(--ink-soft);font-size:12px;font-style:italic;padding:6px 2px;}
+
+  /* Planned expenses */
+  .planned-item-row{
+    display:grid;grid-template-columns:1.6fr 0.9fr 22px;gap:8px;align-items:center;margin-bottom:8px;
+  }
+  .planned-item-row input[type=text]{
+    padding:7px 9px;border:1px solid var(--line);background:#fff;border-radius:3px;
+    font-family:'Inter',sans-serif;font-size:13px;min-width:0;
+  }
+  .planned-item-row input[type=number]{
+    padding:7px 9px;border:1px solid var(--line);background:#fff;border-radius:3px;
+    font-family:'JetBrains Mono',monospace;font-size:13px;text-align:right;min-width:0;
+  }
+  .planned-col-labels{
+    display:grid;grid-template-columns:1.6fr 0.9fr 22px;gap:8px;
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;
+    letter-spacing:0.05em;color:var(--ink-soft);margin-bottom:6px;
+  }
+  .planned-col-labels span:nth-child(2){text-align:right;}
 
   .cat-block{border:1px solid var(--line-strong);background:var(--bg-panel);margin-bottom:16px;}
   .cat-head{display:flex;justify-content:space-between;align-items:baseline;padding:12px 16px;border-bottom:1px solid var(--line);}
@@ -436,6 +457,8 @@
     .ov-savings-cols{grid-template-columns:1fr;}
     .ov-savings-divider{display:none;}
     .ov-savings-col:first-child{border-bottom:1px solid var(--line-strong);}
+    .tabs{overflow-x:auto;}
+    .tab{font-size:9px;padding:9px 3px;flex:1 1 auto;}
     .masthead h1{font-size:26px;}
   }
 </style>
@@ -486,6 +509,7 @@
         <button class="tab" data-tab="creditcar">Credit & Car Loans</button>
         <button class="tab" data-tab="mortgage">Mortgage</button>
         <button class="tab" data-tab="savings">Savings</button>
+        <button class="tab" data-tab="planned">Planned Expenses</button>
       </div>
 
       <!-- OVERVIEW -->
@@ -869,12 +893,28 @@
         </div>
       </div>
 
+      <!-- PLANNED EXPENSES -->
+      <div class="panel" id="panel-planned">
+        <h2 class="section-title">Planned expenses</h2>
+        <p class="section-sub">Trips, home repairs, and anything else you're planning for. Add as many as you need under each category.</p>
+        <div id="plannedCategories"></div>
+        <table class="budget-table" style="margin-top:8px;">
+          <tbody>
+            <tr class="total-row">
+              <td>Grand total</td>
+              <td id="plannedGrandTotal">$0</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
     </div><!-- /main-content -->
   </div><!-- /layout -->
 </div><!-- /app -->
 
 <script>
 const CATEGORIES = ["Home","Transportation","Daily Living","Entertainment","Health","Subscriptions"];
+const PLANNED_CATEGORIES = ["Trips","Home Repairs","Other"];
 const SCHOOL_TYPES = ["Federal Subsidized","Federal Unsubsidized","PLUS Loan","Private Student Loan","Other"];
 const CREDITCAR_TYPES = ["Credit Card","Auto Loan","Personal Loan","Other"];
 const YEARS = [2026, 2027, 2028, 2029];
@@ -885,6 +925,7 @@ function defaultYearData(){
     weekly: { you:[], her:[] },
     monthly: { you:[], her:[] },
     savings: { you:[], her:[] },
+    plannedExpenses: Object.fromEntries(PLANNED_CATEGORIES.map(c=>[c,[]])),
     budgetItems: Object.fromEntries(CATEGORIES.map(c=>[c,[]])),
     debts: [],
     creditcars: [],
@@ -989,6 +1030,8 @@ function migrateLoaded(loaded){
         dst.weekly = src.weekly || dst.weekly;
         dst.monthly = src.monthly || dst.monthly;
         dst.savings = src.savings || dst.savings;
+        dst.plannedExpenses = src.plannedExpenses || dst.plannedExpenses;
+        PLANNED_CATEGORIES.forEach(c=>{ if(!dst.plannedExpenses[c]) dst.plannedExpenses[c] = []; });
         dst.debts = src.debts || dst.debts;
         dst.creditcars = src.creditcars || dst.creditcars;
         dst.budgetItems = src.budgetItems || dst.budgetItems;
@@ -1733,6 +1776,55 @@ function removeBudgetItem(cat, id){
   recalc();
 }
 
+// ---------- PLANNED EXPENSES ----------
+function renderPlannedTable(){
+  const el = document.getElementById('plannedCategories');
+  if(!yr().plannedExpenses) yr().plannedExpenses = Object.fromEntries(PLANNED_CATEGORIES.map(c=>[c,[]]));
+  el.innerHTML = PLANNED_CATEGORIES.map(cat=>{
+    const items = yr().plannedExpenses[cat] || [];
+    const rows = items.length ? items.map(it=>`
+      <div class="planned-item-row" data-item="${it.id}">
+        <input type="text" placeholder="e.g. Cancun trip" value="${escapeHtml(it.name)}" oninput="updatePlannedItem('${cat}','${it.id}','name',this.value)">
+        <input type="number" placeholder="0" value="${it.amount||''}" oninput="updatePlannedItem('${cat}','${it.id}','amount',this.value)">
+        <button class="remove-btn" onclick="removePlannedItem('${cat}','${it.id}')">×</button>
+      </div>
+    `).join('') : '<div class="empty-hint">Nothing added yet.</div>';
+    const catTotal = items.reduce((s,it)=>s+(it.amount||0),0);
+    return `
+      <div class="cat-block">
+        <div class="cat-head">
+          <h3>${cat}</h3>
+          <span class="cat-subtotal" id="plannedSub_${cat.replace(/\s+/g,'')}">${fmt(catTotal)}</span>
+        </div>
+        <div class="cat-body">
+          ${items.length ? `<div class="planned-col-labels"><span>Item</span><span>Amount</span><span></span></div>` : ''}
+          ${rows}
+          <button class="add-btn" onclick="addPlannedItem('${cat}')">+ Add to ${cat}</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+function addPlannedItem(cat){
+  yr().plannedExpenses[cat] = yr().plannedExpenses[cat] || [];
+  yr().plannedExpenses[cat].push({id:newId(), name:'', amount:0});
+  cascadeForward('plannedExpenses');
+  renderPlannedTable();
+  recalc();
+}
+function updatePlannedItem(cat, id, field, value){
+  const item = (yr().plannedExpenses[cat]||[]).find(i=>i.id===id);
+  if(item){ item[field] = field==='amount' ? (parseFloat(value)||0) : value; }
+  cascadeForward('plannedExpenses');
+  recalc();
+}
+function removePlannedItem(cat, id){
+  yr().plannedExpenses[cat] = (yr().plannedExpenses[cat]||[]).filter(i=>i.id!==id);
+  cascadeForward('plannedExpenses');
+  renderPlannedTable();
+  recalc();
+}
+
 // ---------- CALC ----------
 function fmt(n){
   const v = Math.round(n||0);
@@ -1894,6 +1986,20 @@ function recalc(){
   totDiffEl.textContent = fmt(totDiff);
   totDiffEl.className = totDiff>=0?'diff-pos':'diff-neg';
 
+  // Planned expenses
+  if(y.plannedExpenses){
+    let plannedTotal = 0;
+    PLANNED_CATEGORIES.forEach(cat=>{
+      const items = y.plannedExpenses[cat] || [];
+      const catTotal = items.reduce((s,it)=>s+(it.amount||0),0);
+      plannedTotal += catTotal;
+      const subEl = document.getElementById('plannedSub_'+cat.replace(/\s+/g,''));
+      if(subEl) subEl.textContent = fmt(catTotal);
+    });
+    const grandEl = document.getElementById('plannedGrandTotal');
+    if(grandEl) grandEl.textContent = fmt(plannedTotal);
+  }
+
   scheduleSave();
 }
 
@@ -1909,6 +2015,7 @@ function render(){
   renderDebtTable('school');
   renderDebtTable('creditcar');
   renderBudgetTable();
+  renderPlannedTable();
   renderJobCalcs();
   syncMortgageInputs();
   syncMortgageCalcInputs();
