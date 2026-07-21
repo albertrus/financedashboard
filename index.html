@@ -1221,7 +1221,10 @@ function calcJobNet(job){
   const monthlyPreTax = ded401k + dedHsa + dedBen + dedOther;
   const annualPreTax  = monthlyPreTax * 12;
 
-  const annualGross = rate * hours * 52;
+  const regularHours = Math.min(hours, 40);
+  const overtimeHours = Math.max(0, hours - 40);
+  const weeklyGross = (regularHours * rate) + (overtimeHours * rate * 1.5);
+  const annualGross = weeklyGross * 52;
   const monthlyGross = annualGross / 12;
 
   // Federal
