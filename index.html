@@ -186,6 +186,10 @@
     flex:1;padding:9px 10px;border:1px solid var(--line);background:#fff;
     font-family:'JetBrains Mono',monospace;font-size:14px;border-radius:3px;
   }
+  .income-sub{
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-soft);
+    text-align:right;margin-top:4px;
+  }
 
   /* Debt table */
   .debt-table{width:100%;border-collapse:collapse;font-size:13px;}
@@ -551,6 +555,8 @@
           <div class="col">
             <div class="col-head"><span class="swatch you"></span><span id="incLabelYou">Him</span></div>
             <div class="income-row"><label>Primary job</label><input type="number" id="incYouPrimary" placeholder="0" oninput="onIncomeInput()"></div>
+            <div class="income-row" style="margin-top:8px;"><label>Weekly salary</label><input type="number" id="incYouWeekly" placeholder="0" oninput="onIncomeInput()"></div>
+            <div class="income-sub" id="incYouWeeklySub">≈ $0/mo</div>
             <div class="income-row" style="margin-top:8px;"><label>Other income</label><input type="number" id="incYouOther" placeholder="0" oninput="onIncomeInput()"></div>
             <div class="col-total"><span>Monthly total</span><b id="incYouTotal">$0</b></div>
           </div>
@@ -558,6 +564,8 @@
           <div class="col">
             <div class="col-head"><span class="swatch her"></span><span id="incLabelHer">Her</span></div>
             <div class="income-row"><label>Primary job</label><input type="number" id="incHerPrimary" placeholder="0" oninput="onIncomeInput()"></div>
+            <div class="income-row" style="margin-top:8px;"><label>Weekly salary</label><input type="number" id="incHerWeekly" placeholder="0" oninput="onIncomeInput()"></div>
+            <div class="income-sub" id="incHerWeeklySub">≈ $0/mo</div>
             <div class="income-row" style="margin-top:8px;"><label>Other income</label><input type="number" id="incHerOther" placeholder="0" oninput="onIncomeInput()"></div>
             <div class="col-total"><span>Monthly total</span><b id="incHerTotal">$0</b></div>
           </div>
@@ -797,7 +805,7 @@ const YEARS = [2026, 2027, 2028, 2029];
 
 function defaultYearData(){
   return {
-    income: { youPrimary:0, youOther:0, herPrimary:0, herOther:0 },
+    income: { youPrimary:0, youOther:0, youWeekly:0, herPrimary:0, herOther:0, herWeekly:0 },
     weekly: { you:[], her:[] },
     monthly: { you:[], her:[] },
     budgetItems: Object.fromEntries(CATEGORIES.map(c=>[c,[]])),
@@ -1354,18 +1362,29 @@ function applyNameLabelsRef(){
 // ---------- INCOME ----------
 function onIncomeInput(){
   yr().income.youPrimary = parseFloat(document.getElementById('incYouPrimary').value)||0;
+  yr().income.youWeekly  = parseFloat(document.getElementById('incYouWeekly').value)||0;
   yr().income.youOther   = parseFloat(document.getElementById('incYouOther').value)||0;
   yr().income.herPrimary = parseFloat(document.getElementById('incHerPrimary').value)||0;
+  yr().income.herWeekly  = parseFloat(document.getElementById('incHerWeekly').value)||0;
   yr().income.herOther   = parseFloat(document.getElementById('incHerOther').value)||0;
+  updateWeeklySalarySubs();
   cascadeForward('income');
   recalc();
 }
 function syncIncomeInputs(){
   const inc = yr().income;
   document.getElementById('incYouPrimary').value = inc.youPrimary || '';
+  document.getElementById('incYouWeekly').value  = inc.youWeekly || '';
   document.getElementById('incYouOther').value   = inc.youOther || '';
   document.getElementById('incHerPrimary').value = inc.herPrimary || '';
+  document.getElementById('incHerWeekly').value  = inc.herWeekly || '';
   document.getElementById('incHerOther').value   = inc.herOther || '';
+  updateWeeklySalarySubs();
+}
+function updateWeeklySalarySubs(){
+  const inc = yr().income;
+  document.getElementById('incYouWeeklySub').textContent = `≈ ${fmt((inc.youWeekly||0)*4.33)}/mo`;
+  document.getElementById('incHerWeeklySub').textContent = `≈ ${fmt((inc.herWeekly||0)*4.33)}/mo`;
 }
 
 // ---------- MORTGAGE ----------
@@ -1614,8 +1633,9 @@ function recalc(){
   const y = yr();
   const inc = y.income;
 
-  const incYou = (inc.youPrimary||0) + (inc.youOther||0);
-  const incHer = (inc.herPrimary||0) + (inc.herOther||0);
+  const incYou = (inc.youPrimary||0) + (inc.youOther||0) + (inc.youWeekly||0)*4.33;
+  const incHer = (inc.herPrimary||0) + (inc.herOther||0) + (inc.herWeekly||0)*4.33;
+  updateWeeklySalarySubs();
   document.getElementById('incYouTotal').textContent = fmt(incYou);
   document.getElementById('incHerTotal').textContent = fmt(incHer);
 
