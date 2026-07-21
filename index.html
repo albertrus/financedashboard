@@ -455,6 +455,7 @@
         <button class="tab" data-tab="debt">School Loans</button>
         <button class="tab" data-tab="creditcar">Credit & Car Loans</button>
         <button class="tab" data-tab="mortgage">Mortgage</button>
+        <button class="tab" data-tab="savings">Savings</button>
       </div>
 
       <!-- OVERVIEW -->
@@ -793,6 +794,33 @@
         </div>
       </div>
 
+      <!-- SAVINGS -->
+      <div class="panel" id="panel-savings">
+        <h2 class="section-title">Savings</h2>
+        <p class="section-sub">Track savings accounts, funds, or goals. Add as many as you need for each person.</p>
+        <div class="split">
+          <div class="col">
+            <div class="col-head"><span class="swatch you"></span><span id="svLabelYou">Him</span></div>
+            <div id="svYouList"></div>
+            <button class="add-btn" onclick="addRow('svYou')">+ Add savings</button>
+            <div class="col-total"><span>Total</span><b id="svYouTotal">$0</b></div>
+          </div>
+          <div class="divider"></div>
+          <div class="col">
+            <div class="col-head"><span class="swatch her"></span><span id="svLabelHer">Her</span></div>
+            <div id="svHerList"></div>
+            <button class="add-btn" onclick="addRow('svHer')">+ Add savings</button>
+            <div class="col-total"><span>Total</span><b id="svHerTotal">$0</b></div>
+          </div>
+        </div>
+        <div class="stat-grid" style="grid-template-columns:1fr;margin-top:24px;">
+          <div class="stat-card">
+            <div class="label">Combined total savings</div>
+            <div class="value" id="svCombinedTotal">$0</div>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /main-content -->
   </div><!-- /layout -->
 </div><!-- /app -->
@@ -808,6 +836,7 @@ function defaultYearData(){
     income: { youPrimary:0, youOther:0, youWeekly:0, herPrimary:0, herOther:0, herWeekly:0 },
     weekly: { you:[], her:[] },
     monthly: { you:[], her:[] },
+    savings: { you:[], her:[] },
     budgetItems: Object.fromEntries(CATEGORIES.map(c=>[c,[]])),
     debts: [],
     creditcars: [],
@@ -911,6 +940,7 @@ function migrateLoaded(loaded){
         dst.income = src.income || dst.income;
         dst.weekly = src.weekly || dst.weekly;
         dst.monthly = src.monthly || dst.monthly;
+        dst.savings = src.savings || dst.savings;
         dst.debts = src.debts || dst.debts;
         dst.creditcars = src.creditcars || dst.creditcars;
         dst.budgetItems = src.budgetItems || dst.budgetItems;
@@ -1006,8 +1036,8 @@ function updateNames(){
 }
 function applyNameLabels(){
   const you = state.names.you, her = state.names.her;
-  ['incLabelYou','wkLabelYou','moLabelYou'].forEach(id=>document.getElementById(id).textContent=you);
-  ['incLabelHer','wkLabelHer','moLabelHer'].forEach(id=>document.getElementById(id).textContent=her);
+  ['incLabelYou','wkLabelYou','moLabelYou','svLabelYou'].forEach(id=>document.getElementById(id).textContent=you);
+  ['incLabelHer','wkLabelHer','moLabelHer','svLabelHer'].forEach(id=>document.getElementById(id).textContent=her);
   document.getElementById('thYou').textContent = you;
   document.getElementById('thHer').textContent = her;
   applyNameLabelsRef();
@@ -1471,26 +1501,36 @@ function applyMortgageCalc(){
   recalc();
 }
 
-// ---------- BILLS ----------
+// ---------- BILLS / SAVINGS (shared row-list logic) ----------
+function bucketSection(prefix){
+  if(prefix.startsWith('wk')) return 'weekly';
+  if(prefix.startsWith('mo')) return 'monthly';
+  if(prefix.startsWith('sv')) return 'savings';
+  return 'monthly';
+}
+function getBucket(prefix){
+  return yr()[bucketSection(prefix)];
+}
 function addRow(prefix, data){
   const owner = prefix.includes('You') ? 'you' : 'her';
-  const bucket = prefix.startsWith('wk') ? yr().weekly : yr().monthly;
+  const bucket = getBucket(prefix);
   const row = data || { id:newId(), name:'', amount:0 };
   bucket[owner].push(row);
-  cascadeForward(prefix.startsWith('wk') ? 'weekly' : 'monthly');
+  cascadeForward(bucketSection(prefix));
   renderBillList(prefix);
   recalc();
 }
 function renderBillList(prefix){
   const owner = prefix.includes('You') ? 'you' : 'her';
-  const bucket = prefix.startsWith('wk') ? yr().weekly : yr().monthly;
+  const bucket = getBucket(prefix);
   const list = bucket[owner];
   const el = document.getElementById(prefix+'List');
   if(!el) return;
+  const placeholder = bucketSection(prefix)==='savings' ? 'e.g. Emergency fund' : 'e.g. Groceries';
   if(list.length===0){ el.innerHTML='<div class="empty-hint">Nothing added yet.</div>'; return; }
   el.innerHTML = list.map(r=>`
     <div class="field-row">
-      <input type="text" placeholder="e.g. Groceries" value="${escapeHtml(r.name)}" oninput="updateBillField('${prefix}','${r.id}','name',this.value)">
+      <input type="text" placeholder="${placeholder}" value="${escapeHtml(r.name)}" oninput="updateBillField('${prefix}','${r.id}','name',this.value)">
       <input type="number" placeholder="0" value="${r.amount||''}" oninput="updateBillField('${prefix}','${r.id}','amount',this.value)">
       <button class="remove-btn" onclick="removeBillRow('${prefix}','${r.id}')">×</button>
     </div>
@@ -1498,17 +1538,17 @@ function renderBillList(prefix){
 }
 function updateBillField(prefix, id, field, value){
   const owner = prefix.includes('You') ? 'you' : 'her';
-  const bucket = prefix.startsWith('wk') ? yr().weekly : yr().monthly;
+  const bucket = getBucket(prefix);
   const row = bucket[owner].find(r=>r.id===id);
   if(row){ row[field] = field==='amount' ? parseFloat(value)||0 : value; }
-  cascadeForward(prefix.startsWith('wk') ? 'weekly' : 'monthly');
+  cascadeForward(bucketSection(prefix));
   recalc();
 }
 function removeBillRow(prefix, id){
   const owner = prefix.includes('You') ? 'you' : 'her';
-  const bucket = prefix.startsWith('wk') ? yr().weekly : yr().monthly;
+  const bucket = getBucket(prefix);
   bucket[owner] = bucket[owner].filter(r=>r.id!==id);
-  cascadeForward(prefix.startsWith('wk') ? 'weekly' : 'monthly');
+  cascadeForward(bucketSection(prefix));
   renderBillList(prefix);
   recalc();
 }
@@ -1649,6 +1689,17 @@ function recalc(){
   document.getElementById('moYouTotal').textContent = fmt(moYouSum);
   document.getElementById('moHerTotal').textContent = fmt(moHerSum);
 
+  // Savings
+  const sv = y.savings || { you:[], her:[] };
+  const svYouSum = (sv.you||[]).reduce((s,r)=>s+(r.amount||0),0);
+  const svHerSum = (sv.her||[]).reduce((s,r)=>s+(r.amount||0),0);
+  const svYouTotalEl = document.getElementById('svYouTotal');
+  if(svYouTotalEl){
+    svYouTotalEl.textContent = fmt(svYouSum);
+    document.getElementById('svHerTotal').textContent = fmt(svHerSum);
+    document.getElementById('svCombinedTotal').textContent = fmt(svYouSum+svHerSum);
+  }
+
   // School loans
   const schoolOwed = y.debts.reduce((s,d)=>s+(d.amount||0),0);
   const schoolMin  = y.debts.reduce((s,d)=>s+(d.minPay||0),0);
@@ -1780,6 +1831,7 @@ function render(){
   syncRefInputs();
   renderBillList('wkYou'); renderBillList('wkHer');
   renderBillList('moYou'); renderBillList('moHer');
+  renderBillList('svYou'); renderBillList('svHer');
   renderDebtTable('school');
   renderDebtTable('creditcar');
   renderBudgetTable();
