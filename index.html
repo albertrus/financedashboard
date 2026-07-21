@@ -362,6 +362,12 @@
     color:var(--year-color,var(--ink));border-radius:3px;
   }
   .apply-btn:hover{background:var(--year-color,var(--ink));color:#fff;}
+  .job-ded-head{
+    margin-top:14px;padding-top:10px;border-top:1px solid var(--line);
+    font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;
+    letter-spacing:0.06em;color:var(--ink-soft);margin-bottom:2px;
+  }
+  .job-ded-head span{font-size:9px;}
 
   @media(max-width:700px){
     .layout{flex-direction:column;}
@@ -495,48 +501,49 @@
             <div class="col-total"><span>Monthly total</span><b id="incHerTotal">$0</b></div>
           </div>
         </div>
-      </div>
 
-      <!-- ANNUAL INCOME REFERENCE -->
-      <div class="annual-ref">
-        <div class="annual-ref-head">
-          <h3>Annual income reference</h3>
-          <span class="ref-note">For reference only · does not affect calculations</span>
-        </div>
-        <div class="annual-ref-cols">
-          <div class="annual-ref-col">
-            <div class="col-head"><span class="swatch you"></span><span id="refLabelYou">Him</span></div>
-            <div class="ref-row"><label>Base pay</label><input type="number" id="refYouBase" placeholder="0" oninput="onRefInput('you')"></div>
-            <div class="ref-row"><label>Overtime</label><input type="number" id="refYouOvertime" placeholder="0" oninput="onRefInput('you')"></div>
-            <div class="ref-row"><label>Holiday bonus</label><input type="number" id="refYouHoliday" placeholder="0" oninput="onRefInput('you')"></div>
-            <div class="ref-row"><label>Cash bonus</label><input type="number" id="refYouCash" placeholder="0" oninput="onRefInput('you')"></div>
-            <div class="ref-row"><label>RSU value</label><input type="number" id="refYouRsu" placeholder="0" oninput="onRefInput('you')"></div>
-            <div class="ref-total"><span>Total annual</span><b id="refYouTotal">$0</b></div>
+        <!-- ANNUAL INCOME REFERENCE -->
+        <div class="annual-ref">
+          <div class="annual-ref-head">
+            <h3>Annual income reference</h3>
+            <span class="ref-note">For reference only · does not affect calculations</span>
           </div>
-          <div class="annual-ref-divider"></div>
-          <div class="annual-ref-col">
-            <div class="col-head"><span class="swatch her"></span><span id="refLabelHer">Her</span></div>
-            <div class="ref-row"><label>Base pay</label><input type="number" id="refHerBase" placeholder="0" oninput="onRefInput('her')"></div>
-            <div class="ref-row"><label>Overtime</label><input type="number" id="refHerOvertime" placeholder="0" oninput="onRefInput('her')"></div>
-            <div class="ref-row"><label>Holiday bonus</label><input type="number" id="refHerHoliday" placeholder="0" oninput="onRefInput('her')"></div>
-            <div class="ref-row"><label>Cash bonus</label><input type="number" id="refHerCash" placeholder="0" oninput="onRefInput('her')"></div>
-            <div class="ref-row"><label>RSU value</label><input type="number" id="refHerRsu" placeholder="0" oninput="onRefInput('her')"></div>
-            <div class="ref-total"><span>Total annual</span><b id="refHerTotal">$0</b></div>
+          <div class="annual-ref-cols">
+            <div class="annual-ref-col">
+              <div class="col-head"><span class="swatch you"></span><span id="refLabelYou">Him</span></div>
+              <div class="ref-row"><label>Base pay</label><input type="number" id="refYouBase" placeholder="0" oninput="onRefInput('you')"></div>
+              <div class="ref-row"><label>Overtime</label><input type="number" id="refYouOvertime" placeholder="0" oninput="onRefInput('you')"></div>
+              <div class="ref-row"><label>Holiday bonus</label><input type="number" id="refYouHoliday" placeholder="0" oninput="onRefInput('you')"></div>
+              <div class="ref-row"><label>Cash bonus</label><input type="number" id="refYouCash" placeholder="0" oninput="onRefInput('you')"></div>
+              <div class="ref-row"><label>RSU value</label><input type="number" id="refYouRsu" placeholder="0" oninput="onRefInput('you')"></div>
+              <div class="ref-total"><span>Total annual</span><b id="refYouTotal">$0</b></div>
+            </div>
+            <div class="annual-ref-divider"></div>
+            <div class="annual-ref-col">
+              <div class="col-head"><span class="swatch her"></span><span id="refLabelHer">Her</span></div>
+              <div class="ref-row"><label>Base pay</label><input type="number" id="refHerBase" placeholder="0" oninput="onRefInput('her')"></div>
+              <div class="ref-row"><label>Overtime</label><input type="number" id="refHerOvertime" placeholder="0" oninput="onRefInput('her')"></div>
+              <div class="ref-row"><label>Holiday bonus</label><input type="number" id="refHerHoliday" placeholder="0" oninput="onRefInput('her')"></div>
+              <div class="ref-row"><label>Cash bonus</label><input type="number" id="refHerCash" placeholder="0" oninput="onRefInput('her')"></div>
+              <div class="ref-row"><label>RSU value</label><input type="number" id="refHerRsu" placeholder="0" oninput="onRefInput('her')"></div>
+              <div class="ref-total"><span>Total annual</span><b id="refHerTotal">$0</b></div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- JOB CALCULATOR (2027+) -->
-      <div id="jobCalcSection" class="job-calc-section" style="display:none;">
-        <div class="job-calc-header">
-          <div>
-            <h3>Job Calculator</h3>
-            <div class="jc-sub">Texas · No state income tax</div>
+        <!-- JOB CALCULATOR -->
+        <div id="jobCalcSection" class="job-calc-section" style="display:none;">
+          <div class="job-calc-header">
+            <div>
+              <h3>Job Calculator</h3>
+              <div class="jc-sub">Federal + state taxes · select your state</div>
+            </div>
+            <button class="add-job-btn" onclick="addJobCalc()">+ New job</button>
           </div>
-          <button class="add-job-btn" onclick="addJobCalc()">+ New job</button>
+          <div class="job-cards" id="jobCards"></div>
         </div>
-        <div class="job-cards" id="jobCards"></div>
-      </div>
+
+      </div><!-- /panel-income -->
 
       <!-- WEEKLY BILLS -->
       <div class="panel" id="panel-weekly">
@@ -834,12 +841,68 @@ const FED_BRACKETS = {
   single:  [[11600,0.10],[47150,0.12],[100525,0.22],[191950,0.24],[243725,0.32],[609350,0.35],[Infinity,0.37]],
   married: [[23200,0.10],[94300,0.12],[201050,0.22],[383900,0.24],[487450,0.32],[731200,0.35],[Infinity,0.37]]
 };
-const STD_DED = { single:14600, married:29200 };
+const FED_STD_DED = { single:14600, married:29200 };
 
-function calcFedTax(annualGross, filing){
-  const taxable = Math.max(0, annualGross - STD_DED[filing]);
+// State tax data: [brackets single, brackets married, stdDed single, stdDed married]
+// brackets: [[topOfBracket, rate], ...] — 0-bracket states have empty arrays
+const STATE_TAX = {
+  AL:{n:'Alabama',      s:[[500,.02],[3e3,.04],[Infinity,.05]],      m:[[1e3,.02],[6e3,.04],[Infinity,.05]],      ds:2500,  dm:7500},
+  AK:{n:'Alaska',       s:[],m:[],ds:0,dm:0},
+  AZ:{n:'Arizona',      s:[[Infinity,.025]], m:[[Infinity,.025]],    ds:14600, dm:29200},
+  AR:{n:'Arkansas',     s:[[4300,.02],[8500,.04],[Infinity,.049]],   m:[[4300,.02],[8500,.04],[Infinity,.049]],  ds:2340,  dm:4680},
+  CA:{n:'California',   s:[[10412,.01],[24684,.02],[38959,.04],[54081,.06],[68350,.08],[349137,.093],[418961,.103],[698274,.113],[Infinity,.123]], m:[[20824,.01],[49368,.02],[77918,.04],[108162,.06],[136700,.08],[698274,.093],[837922,.103],[1e6,.113],[Infinity,.123]], ds:5202, dm:10404},
+  CO:{n:'Colorado',     s:[[Infinity,.044]], m:[[Infinity,.044]],   ds:14600, dm:29200},
+  CT:{n:'Connecticut',  s:[[10000,.03],[50000,.05],[100000,.055],[200000,.06],[250000,.065],[500000,.069],[Infinity,.0699]], m:[[20000,.03],[100000,.05],[200000,.055],[400000,.06],[500000,.065],[1e6,.069],[Infinity,.0699]], ds:0, dm:0},
+  DE:{n:'Delaware',     s:[[2000,0],[5000,.022],[10000,.039],[20000,.048],[25000,.052],[60000,.0555],[Infinity,.066]], m:[[2000,0],[5000,.022],[10000,.039],[20000,.048],[25000,.052],[60000,.0555],[Infinity,.066]], ds:3250, dm:6500},
+  FL:{n:'Florida',      s:[],m:[],ds:0,dm:0},
+  GA:{n:'Georgia',      s:[[Infinity,.055]], m:[[Infinity,.055]],   ds:12000, dm:24000},
+  HI:{n:'Hawaii',       s:[[2400,.014],[4800,.032],[9600,.055],[14400,.064],[19200,.068],[24000,.072],[36000,.076],[48000,.079],[150000,.0825],[175000,.09],[200000,.1],[Infinity,.11]], m:[[4800,.014],[9600,.032],[19200,.055],[28800,.064],[38400,.068],[48000,.072],[72000,.076],[96000,.079],[300000,.0825],[350000,.09],[400000,.1],[Infinity,.11]], ds:2200, dm:4400},
+  ID:{n:'Idaho',        s:[[Infinity,.058]], m:[[Infinity,.058]],   ds:14600, dm:29200},
+  IL:{n:'Illinois',     s:[[Infinity,.0495]],m:[[Infinity,.0495]],  ds:2425,  dm:4850},
+  IN:{n:'Indiana',      s:[[Infinity,.0305]],m:[[Infinity,.0305]],  ds:1000,  dm:2000},
+  IA:{n:'Iowa',         s:[[Infinity,.0575]],m:[[Infinity,.0575]],  ds:14600, dm:29200},
+  KS:{n:'Kansas',       s:[[15000,.031],[30000,.0525],[Infinity,.057]], m:[[30000,.031],[60000,.0525],[Infinity,.057]], ds:3500, dm:8000},
+  KY:{n:'Kentucky',     s:[[Infinity,.04]], m:[[Infinity,.04]],     ds:2980,  dm:2980},
+  LA:{n:'Louisiana',    s:[[12500,.0185],[50000,.035],[Infinity,.0425]], m:[[25000,.0185],[100000,.035],[Infinity,.0425]], ds:4500, dm:9000},
+  ME:{n:'Maine',        s:[[24500,.058],[58050,.0675],[Infinity,.0715]], m:[[49050,.058],[116100,.0675],[Infinity,.0715]], ds:14600, dm:29200},
+  MD:{n:'Maryland',     s:[[1000,.02],[2000,.03],[3000,.04],[100000,.0475],[125000,.05],[150000,.0525],[250000,.055],[Infinity,.0575]], m:[[1000,.02],[2000,.03],[3000,.04],[150000,.0475],[175000,.05],[225000,.0525],[300000,.055],[Infinity,.0575]], ds:2400, dm:4850},
+  MA:{n:'Massachusetts',s:[[Infinity,.05]], m:[[Infinity,.05]],     ds:4400,  dm:8800},
+  MI:{n:'Michigan',     s:[[Infinity,.0425]],m:[[Infinity,.0425]],  ds:5600,  dm:11200},
+  MN:{n:'Minnesota',    s:[[31690,.0535],[104090,.068],[193240,.0785],[Infinity,.0985]], m:[[46330,.0535],[184040,.068],[321450,.0785],[Infinity,.0985]], ds:14575, dm:29150},
+  MS:{n:'Mississippi',  s:[[10000,0],[Infinity,.047]], m:[[10000,0],[Infinity,.047]], ds:2300, dm:4600},
+  MO:{n:'Missouri',     s:[[1207,.015],[2414,.02],[3621,.025],[4828,.03],[6035,.035],[7242,.04],[8432,.045],[Infinity,.048]], m:[[1207,.015],[2414,.02],[3621,.025],[4828,.03],[6035,.035],[7242,.04],[8432,.045],[Infinity,.048]], ds:21900, dm:21900},
+  MT:{n:'Montana',      s:[[3600,.01],[6300,.02],[9700,.03],[13000,.04],[16800,.05],[21600,.06],[Infinity,.069]], m:[[3600,.01],[6300,.02],[9700,.03],[13000,.04],[16800,.05],[21600,.06],[Infinity,.069]], ds:2580, dm:5160},
+  NE:{n:'Nebraska',     s:[[3700,.246],[22170,.351],[35730,.0501],[Infinity,.0664]], m:[[7390,.246],[44340,.351],[71470,.0501],[Infinity,.0664]], ds:7900, dm:15800},
+  NV:{n:'Nevada',       s:[],m:[],ds:0,dm:0},
+  NH:{n:'New Hampshire',s:[],m:[],ds:0,dm:0},
+  NJ:{n:'New Jersey',   s:[[20000,.014],[35000,.0175],[40000,.035],[75000,.05525],[500000,.0637],[1e6,.0897],[Infinity,.1075]], m:[[20000,.014],[50000,.0175],[70000,.0245],[80000,.035],[150000,.05525],[500000,.0637],[1e6,.0897],[Infinity,.1075]], ds:1000, dm:2000},
+  NM:{n:'New Mexico',   s:[[5500,.017],[11000,.032],[16000,.047],[210000,.049],[Infinity,.059]], m:[[8000,.017],[16000,.032],[24000,.047],[315000,.049],[Infinity,.059]], ds:14600, dm:29200},
+  NY:{n:'New York',     s:[[17150,.04],[23600,.045],[27900,.0525],[161550,.0585],[323200,.0625],[2155350,.0685],[5e6,.0965],[25e6,.103],[Infinity,.109]], m:[[17150,.04],[23600,.045],[27900,.0525],[161550,.0585],[323200,.0625],[2155350,.0685],[5e6,.0965],[25e6,.103],[Infinity,.109]], ds:8000, dm:16050},
+  NC:{n:'North Carolina',s:[[Infinity,.0475]],m:[[Infinity,.0475]], ds:12750, dm:25500},
+  ND:{n:'North Dakota', s:[[44725,.011],[225975,.0204],[Infinity,.027]], m:[[74750,.011],[275100,.0204],[Infinity,.027]], ds:14600, dm:29200},
+  OH:{n:'Ohio',         s:[[26050,0],[100000,.0275],[Infinity,.035]], m:[[26050,0],[100000,.0275],[Infinity,.035]], ds:0, dm:0},
+  OK:{n:'Oklahoma',     s:[[1000,.025],[2500,.025],[3750,.0375],[4900,.0475],[7200,.0475],[Infinity,.05]], m:[[2000,.025],[5000,.025],[7500,.0375],[9800,.0475],[12200,.0475],[Infinity,.05]], ds:6350, dm:12700},
+  OR:{n:'Oregon',       s:[[18400,.0475],[46200,.0675],[250000,.0875],[Infinity,.099]], m:[[18400,.0475],[46200,.0675],[250000,.0875],[Infinity,.099]], ds:2420, dm:4840},
+  PA:{n:'Pennsylvania', s:[[Infinity,.0307]],m:[[Infinity,.0307]],  ds:0,     dm:0},
+  RI:{n:'Rhode Island', s:[[77450,.0375],[176050,.0475],[Infinity,.0599]], m:[[77450,.0375],[176050,.0475],[Infinity,.0599]], ds:10550, dm:21100},
+  SC:{n:'South Carolina',s:[[Infinity,.064]], m:[[Infinity,.064]], ds:14600, dm:29200},
+  SD:{n:'South Dakota', s:[],m:[],ds:0,dm:0},
+  TN:{n:'Tennessee',    s:[],m:[],ds:0,dm:0},
+  TX:{n:'Texas',        s:[],m:[],ds:0,dm:0},
+  UT:{n:'Utah',         s:[[Infinity,.0465]],m:[[Infinity,.0465]],  ds:912,   dm:1825},
+  VT:{n:'Vermont',      s:[[45400,.0335],[110050,.066],[229550,.076],[Infinity,.0875]], m:[[75850,.0335],[183400,.066],[279900,.076],[Infinity,.0875]], ds:6500, dm:13000},
+  VA:{n:'Virginia',     s:[[3000,.02],[5000,.03],[17000,.05],[Infinity,.0575]], m:[[3000,.02],[5000,.03],[17000,.05],[Infinity,.0575]], ds:8000, dm:16000},
+  WA:{n:'Washington',   s:[],m:[],ds:0,dm:0},
+  WV:{n:'West Virginia',s:[[10000,.0236],[25000,.032],[40000,.0454],[60000,.0512],[Infinity,.0512]], m:[[10000,.0236],[25000,.032],[40000,.0454],[60000,.0512],[Infinity,.0512]], ds:0, dm:0},
+  WI:{n:'Wisconsin',    s:[[14320,.035],[28640,.044],[315310,.053],[Infinity,.0765]], m:[[19880,.035],[39760,.044],[Infinity,.053],[Infinity,.0765]], ds:11820, dm:21820},
+  WY:{n:'Wyoming',      s:[],m:[],ds:0,dm:0},
+  DC:{n:'D.C.',         s:[[10000,.04],[40000,.06],[60000,.065],[250000,.085],[500000,.0875],[1e6,.0895],[Infinity,.1075]], m:[[10000,.04],[40000,.06],[60000,.065],[250000,.085],[500000,.0875],[1e6,.0895],[Infinity,.1075]], ds:14600, dm:29200},
+};
+
+function calcBracketTax(taxable, brackets){
+  if(!brackets.length) return 0;
   let tax = 0, prev = 0;
-  for(const [top, rate] of FED_BRACKETS[filing]){
+  for(const [top, rate] of brackets){
     if(taxable <= prev) break;
     tax += (Math.min(taxable, top) - prev) * rate;
     prev = top;
@@ -847,21 +910,50 @@ function calcFedTax(annualGross, filing){
   return tax;
 }
 
-function calcJobNet(rate, hours, filing){
+function calcJobNet(job){
+  const rate = job.rate||0, hours = job.hours||40, filing = job.filing||'single';
+  const stCode = job.state||'TX';
+  const st = STATE_TAX[stCode] || STATE_TAX['TX'];
+  // pre-tax deductions reduce taxable income for fed + state
+  const ded401k  = job.ded401k||0;
+  const dedHsa   = job.dedHsa||0;
+  const dedBen   = job.dedBen||0;   // health/dental/vision premiums (monthly)
+  const dedOther = job.dedOther||0; // other pre-tax monthly
+  const monthlyPreTax = ded401k + dedHsa + dedBen + dedOther;
+  const annualPreTax  = monthlyPreTax * 12;
+
   const annualGross = rate * hours * 52;
   const monthlyGross = annualGross / 12;
-  const fedTaxAnnual = calcFedTax(annualGross, filing);
+
+  // Federal
+  const fedStdDed = FED_STD_DED[filing];
+  const fedTaxable = Math.max(0, annualGross - annualPreTax - fedStdDed);
+  const fedBrackets = FED_BRACKETS[filing];
+  const fedTaxAnnual = calcBracketTax(fedTaxable, fedBrackets);
+
+  // State
+  const stStdDed = filing==='married' ? st.dm : st.ds;
+  const stTaxable = Math.max(0, annualGross - annualPreTax - stStdDed);
+  const stBrackets = filing==='married' ? st.m : st.s;
+  const stTaxAnnual = calcBracketTax(stTaxable, stBrackets);
+
+  // FICA
   const ssAnnual  = Math.min(annualGross, 168600) * 0.062;
   const medAnnual = annualGross * 0.0145;
-  const monthlyFed = fedTaxAnnual / 12;
-  const monthlyFica = (ssAnnual + medAnnual) / 12;
-  const monthlyNet = monthlyGross - monthlyFed - monthlyFica;
-  return { monthlyGross, monthlyFed, monthlyFica, monthlyNet };
+
+  const monthlyFed   = fedTaxAnnual / 12;
+  const monthlyState = stTaxAnnual / 12;
+  const monthlyFica  = (ssAnnual + medAnnual) / 12;
+  const monthlyNet   = monthlyGross - monthlyFed - monthlyState - monthlyFica - monthlyPreTax;
+  return { monthlyGross, monthlyFed, monthlyState, monthlyFica, monthlyPreTax, monthlyNet, stName: st.n };
 }
+
+const STATE_OPTIONS = Object.entries(STATE_TAX).sort((a,b)=>a[1].n.localeCompare(b[1].n))
+  .map(([code,s])=>`<option value="${code}">${s.n}${s.s.length===0?' (no income tax)':''}</option>`).join('');
 
 function addJobCalc(data){
   if(!yr().jobCalcs) yr().jobCalcs = [];
-  const job = data || { id:newId(), owner:'you', name:'', rate:0, hours:40, filing:'single' };
+  const job = data || { id:newId(), owner:'you', name:'', rate:0, hours:40, filing:'single', state:'TX', ded401k:0, dedHsa:0, dedBen:0, dedOther:0 };
   yr().jobCalcs.push(job);
   renderJobCalcs();
   scheduleSave();
@@ -876,8 +968,8 @@ function removeJobCalc(id){
 function updateJobField(id, field, value){
   const job = (yr().jobCalcs||[]).find(j=>j.id===id);
   if(!job) return;
-  if(field==='rate'||field==='hours') job[field] = parseFloat(value)||0;
-  else job[field] = value;
+  const numFields = ['rate','hours','ded401k','dedHsa','dedBen','dedOther'];
+  job[field] = numFields.includes(field) ? (parseFloat(value)||0) : value;
   renderJobCalcs();
   scheduleSave();
 }
@@ -885,7 +977,7 @@ function updateJobField(id, field, value){
 function applyJobToIncome(id){
   const job = (yr().jobCalcs||[]).find(j=>j.id===id);
   if(!job) return;
-  const { monthlyNet } = calcJobNet(job.rate||0, job.hours||0, job.filing||'single');
+  const { monthlyNet } = calcJobNet(job);
   const net = Math.round(monthlyNet);
   if(job.owner==='you'){
     yr().income.youPrimary = net;
@@ -900,15 +992,14 @@ function applyJobToIncome(id){
 function renderJobCalcs(){
   const section = document.getElementById('jobCalcSection');
   const container = document.getElementById('jobCards');
-  const show = activeYear >= 2026;
-  section.style.display = show ? '' : 'none';
-  if(!show) return;
+  section.style.display = '';
   const jobs = yr().jobCalcs || [];
   if(jobs.length === 0){ container.innerHTML = '<div class="empty-hint" style="padding:4px 0;">Click "+ New job" to add a salary calculator.</div>'; return; }
   container.innerHTML = jobs.map(job=>{
-    const rate = job.rate||0, hours = job.hours||40;
-    const { monthlyGross, monthlyFed, monthlyFica, monthlyNet } = calcJobNet(rate, hours, job.filing||'single');
+    const { monthlyGross, monthlyFed, monthlyState, monthlyFica, monthlyPreTax, monthlyNet, stName } = calcJobNet(job);
     const ownerName = job.owner==='you' ? escapeHtml(state.names.you) : escapeHtml(state.names.her);
+    const stateOpts = STATE_OPTIONS.replace(`value="${job.state||'TX'}"`,`value="${job.state||'TX'}" selected`);
+    const hasStateTax = monthlyState > 0;
     return `
       <div class="job-card">
         <button class="job-card-remove" onclick="removeJobCalc('${job.id}')">×</button>
@@ -919,19 +1010,32 @@ function renderJobCalcs(){
           <option value="you" ${job.owner==='you'?'selected':''}>${escapeHtml(state.names.you)}</option>
           <option value="her" ${job.owner==='her'?'selected':''}>${escapeHtml(state.names.her)}</option>
         </select>
-        <label>Hourly rate ($)</label>
-        <input type="number" placeholder="0.00" step="0.01" value="${rate||''}" oninput="updateJobField('${job.id}','rate',this.value)">
-        <label>Hours per week</label>
-        <input type="number" placeholder="40" value="${hours||''}" oninput="updateJobField('${job.id}','hours',this.value)">
+        <label>State</label>
+        <select onchange="updateJobField('${job.id}','state',this.value)">${stateOpts}</select>
         <label>Filing status</label>
         <select onchange="updateJobField('${job.id}','filing',this.value)">
-          <option value="single" ${job.filing==='single'?'selected':''}>Single</option>
+          <option value="single" ${(job.filing||'single')==='single'?'selected':''}>Single</option>
           <option value="married" ${job.filing==='married'?'selected':''}>Married filing jointly</option>
         </select>
+        <label>Hourly rate ($)</label>
+        <input type="number" placeholder="0.00" step="0.01" value="${job.rate||''}" oninput="updateJobField('${job.id}','rate',this.value)">
+        <label>Hours per week</label>
+        <input type="number" placeholder="40" value="${job.hours||''}" oninput="updateJobField('${job.id}','hours',this.value)">
+        <div class="job-ded-head">Pre-tax deductions <span>(monthly)</span></div>
+        <label>401(k) / 403(b)</label>
+        <input type="number" placeholder="0" value="${job.ded401k||''}" oninput="updateJobField('${job.id}','ded401k',this.value)">
+        <label>HSA</label>
+        <input type="number" placeholder="0" value="${job.dedHsa||''}" oninput="updateJobField('${job.id}','dedHsa',this.value)">
+        <label>Benefits (health/dental/vision)</label>
+        <input type="number" placeholder="0" value="${job.dedBen||''}" oninput="updateJobField('${job.id}','dedBen',this.value)">
+        <label>Other pre-tax</label>
+        <input type="number" placeholder="0" value="${job.dedOther||''}" oninput="updateJobField('${job.id}','dedOther',this.value)">
         <div class="job-results">
           <div class="job-result-row"><span>Monthly gross</span><span>${fmt(monthlyGross)}</span></div>
           <div class="job-result-row"><span>Federal income tax</span><span>−${fmt(monthlyFed)}</span></div>
+          ${hasStateTax ? `<div class="job-result-row"><span>${stName} state tax</span><span>−${fmt(monthlyState)}</span></div>` : `<div class="job-result-row"><span>${stName} state tax</span><span style="color:var(--you)">$0</span></div>`}
           <div class="job-result-row"><span>FICA (SS + Medicare)</span><span>−${fmt(monthlyFica)}</span></div>
+          ${monthlyPreTax>0?`<div class="job-result-row"><span>Pre-tax deductions</span><span>−${fmt(monthlyPreTax)}</span></div>`:''}
           <div class="job-result-row net"><span>Monthly take-home</span><span>${fmt(monthlyNet)}</span></div>
         </div>
         <button class="apply-btn" onclick="applyJobToIncome('${job.id}')">→ Apply to ${ownerName}'s primary income</button>
