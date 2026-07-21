@@ -157,7 +157,7 @@
     flex:1.4;padding:8px 10px;border:1px solid var(--line);background:#fff;
     font-family:'Inter',sans-serif;font-size:13px;border-radius:3px;
   }
-  .field-row input[type=number]{
+  .field-row input[inputmode=decimal]{
     flex:1;padding:8px 10px;border:1px solid var(--line);background:#fff;
     font-family:'JetBrains Mono',monospace;font-size:13px;border-radius:3px;min-width:0;
   }
@@ -205,7 +205,7 @@
     width:100%;padding:6px 7px;border:1px solid var(--line);background:#fff;
     font-family:'Inter',sans-serif;font-size:12.5px;border-radius:3px;
   }
-  .debt-table input[type=number]{font-family:'JetBrains Mono',monospace;}
+  .debt-table input[inputmode=decimal]{font-family:'JetBrains Mono',monospace;}
 
   /* Stat cards */
   .stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:24px;}
@@ -265,7 +265,7 @@
     padding:7px 9px;border:1px solid var(--line);background:#fff;border-radius:3px;
     font-family:'Inter',sans-serif;font-size:13px;min-width:0;
   }
-  .planned-item-row input[type=number]{
+  .planned-item-row input[inputmode=decimal]{
     padding:7px 9px;border:1px solid var(--line);background:#fff;border-radius:3px;
     font-family:'JetBrains Mono',monospace;font-size:13px;text-align:right;min-width:0;
   }
@@ -283,7 +283,7 @@
   .cat-body{padding:12px 16px;}
   .cat-item-row{display:grid;grid-template-columns:1.6fr 0.85fr 0.85fr 0.7fr 22px;gap:8px;align-items:center;margin-bottom:8px;}
   .cat-item-row input[type=text]{padding:7px 9px;border:1px solid var(--line);background:#fff;border-radius:3px;font-family:'Inter',sans-serif;font-size:13px;min-width:0;}
-  .cat-item-row input[type=number]{padding:7px 9px;border:1px solid var(--line);background:#fff;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:13px;text-align:right;min-width:0;}
+  .cat-item-row input[inputmode=decimal]{padding:7px 9px;border:1px solid var(--line);background:#fff;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:13px;text-align:right;min-width:0;}
   .cat-item-row .item-diff{font-family:'JetBrains Mono',monospace;font-size:12.5px;text-align:right;padding-right:2px;}
   .cat-col-labels{
     display:grid;grid-template-columns:1.6fr 0.85fr 0.85fr 0.7fr 22px;gap:8px;
@@ -368,7 +368,7 @@
     flex:1.3;padding:7px 9px;border:1px solid var(--line);background:#fff;
     font-family:'Inter',sans-serif;font-size:12.5px;border-radius:3px;min-width:0;
   }
-  .ref-bonus-row input[type=number]{
+  .ref-bonus-row input[inputmode=decimal]{
     flex:1;padding:7px 9px;border:1px solid var(--line);background:#fff;
     font-family:'JetBrains Mono',monospace;font-size:12.5px;border-radius:3px;text-align:right;min-width:0;
   }
@@ -591,30 +591,30 @@
           <div class="annual-ref-cols">
             <div class="annual-ref-col">
               <div class="col-head"><span class="swatch you"></span><span id="refLabelYouOv">Him</span></div>
-              <div class="ref-row"><label>Base pay</label><input type="number" id="refYouBaseOv" placeholder="0" oninput="onRefInput('you','Ov')"></div>
-              <div class="ref-row"><label>Overtime</label><input type="number" id="refYouOvertimeOv" placeholder="0" oninput="onRefInput('you','Ov')"></div>
-              <div class="ref-row"><label>Holiday bonus</label><input type="number" id="refYouHolidayOv" placeholder="0" oninput="onRefInput('you','Ov')"></div>
-              <div class="ref-row"><label>Cash bonus</label><input type="number" id="refYouCashOv" placeholder="0" oninput="onRefInput('you','Ov')"></div>
-              <div class="ref-row"><label>RSU value</label><input type="number" id="refYouRsuOv" placeholder="0" oninput="onRefInput('you','Ov')"></div>
+              <div class="ref-row"><label>Base pay</label><input type="text" inputmode="decimal" id="refYouBaseOv" placeholder="0" oninput="onRefInput('you','Ov')"></div>
+              <div class="ref-row"><label>Overtime</label><input type="text" inputmode="decimal" id="refYouOvertimeOv" placeholder="0" oninput="onRefInput('you','Ov')"></div>
+              <div class="ref-row"><label>Holiday bonus</label><input type="text" inputmode="decimal" id="refYouHolidayOv" placeholder="0" oninput="onRefInput('you','Ov')"></div>
+              <div class="ref-row"><label>Cash bonus</label><input type="text" inputmode="decimal" id="refYouCashOv" placeholder="0" oninput="onRefInput('you','Ov')"></div>
+              <div class="ref-row"><label>RSU value</label><input type="text" inputmode="decimal" id="refYouRsuOv" placeholder="0" oninput="onRefInput('you','Ov')"></div>
               <div class="ref-bonus-list" id="refYouBonusListOv"></div>
               <button class="ref-add-bonus-btn" onclick="addRefBonus('you','Ov')">+ Add other bonus</button>
               <div class="ref-total"><span>Total annual</span><b id="refYouTotalOv">$0</b></div>
-              <div class="ref-rate-row"><label>Hourly wage</label><input type="number" step="0.01" id="refYouHourlyOv" placeholder="0.00" oninput="onRefInput('you','Ov')"></div>
-              <div class="ref-rate-row"><label>Overtime wage</label><input type="number" step="0.01" id="refYouOtWageOv" placeholder="0.00" oninput="onRefInput('you','Ov')"></div>
+              <div class="ref-rate-row"><label>Hourly wage</label><input type="text" inputmode="decimal" step="0.01" id="refYouHourlyOv" placeholder="0.00" oninput="onRefInput('you','Ov')"></div>
+              <div class="ref-rate-row"><label>Overtime wage</label><input type="text" inputmode="decimal" step="0.01" id="refYouOtWageOv" placeholder="0.00" oninput="onRefInput('you','Ov')"></div>
             </div>
             <div class="annual-ref-divider"></div>
             <div class="annual-ref-col">
               <div class="col-head"><span class="swatch her"></span><span id="refLabelHerOv">Her</span></div>
-              <div class="ref-row"><label>Base pay</label><input type="number" id="refHerBaseOv" placeholder="0" oninput="onRefInput('her','Ov')"></div>
-              <div class="ref-row"><label>Overtime</label><input type="number" id="refHerOvertimeOv" placeholder="0" oninput="onRefInput('her','Ov')"></div>
-              <div class="ref-row"><label>Holiday bonus</label><input type="number" id="refHerHolidayOv" placeholder="0" oninput="onRefInput('her','Ov')"></div>
-              <div class="ref-row"><label>Cash bonus</label><input type="number" id="refHerCashOv" placeholder="0" oninput="onRefInput('her','Ov')"></div>
-              <div class="ref-row"><label>RSU value</label><input type="number" id="refHerRsuOv" placeholder="0" oninput="onRefInput('her','Ov')"></div>
+              <div class="ref-row"><label>Base pay</label><input type="text" inputmode="decimal" id="refHerBaseOv" placeholder="0" oninput="onRefInput('her','Ov')"></div>
+              <div class="ref-row"><label>Overtime</label><input type="text" inputmode="decimal" id="refHerOvertimeOv" placeholder="0" oninput="onRefInput('her','Ov')"></div>
+              <div class="ref-row"><label>Holiday bonus</label><input type="text" inputmode="decimal" id="refHerHolidayOv" placeholder="0" oninput="onRefInput('her','Ov')"></div>
+              <div class="ref-row"><label>Cash bonus</label><input type="text" inputmode="decimal" id="refHerCashOv" placeholder="0" oninput="onRefInput('her','Ov')"></div>
+              <div class="ref-row"><label>RSU value</label><input type="text" inputmode="decimal" id="refHerRsuOv" placeholder="0" oninput="onRefInput('her','Ov')"></div>
               <div class="ref-bonus-list" id="refHerBonusListOv"></div>
               <button class="ref-add-bonus-btn" onclick="addRefBonus('her','Ov')">+ Add other bonus</button>
               <div class="ref-total"><span>Total annual</span><b id="refHerTotalOv">$0</b></div>
-              <div class="ref-rate-row"><label>Hourly wage</label><input type="number" step="0.01" id="refHerHourlyOv" placeholder="0.00" oninput="onRefInput('her','Ov')"></div>
-              <div class="ref-rate-row"><label>Overtime wage</label><input type="number" step="0.01" id="refHerOtWageOv" placeholder="0.00" oninput="onRefInput('her','Ov')"></div>
+              <div class="ref-rate-row"><label>Hourly wage</label><input type="text" inputmode="decimal" step="0.01" id="refHerHourlyOv" placeholder="0.00" oninput="onRefInput('her','Ov')"></div>
+              <div class="ref-rate-row"><label>Overtime wage</label><input type="text" inputmode="decimal" step="0.01" id="refHerOtWageOv" placeholder="0.00" oninput="onRefInput('her','Ov')"></div>
             </div>
           </div>
         </div>
@@ -627,19 +627,19 @@
         <div class="split">
           <div class="col">
             <div class="col-head"><span class="swatch you"></span><span id="incLabelYou">Him</span></div>
-            <div class="income-row"><label>Primary job</label><input type="number" id="incYouPrimary" placeholder="0" oninput="onIncomeInput()"></div>
-            <div class="income-row" style="margin-top:8px;"><label>Weekly salary</label><input type="number" id="incYouWeekly" placeholder="0" oninput="onIncomeInput()"></div>
+            <div class="income-row"><label>Primary job</label><input type="text" inputmode="decimal" id="incYouPrimary" placeholder="0" oninput="onIncomeInput()"></div>
+            <div class="income-row" style="margin-top:8px;"><label>Weekly salary</label><input type="text" inputmode="decimal" id="incYouWeekly" placeholder="0" oninput="onIncomeInput()"></div>
             <div class="income-sub" id="incYouWeeklySub">≈ $0/mo</div>
-            <div class="income-row" style="margin-top:8px;"><label>Other income</label><input type="number" id="incYouOther" placeholder="0" oninput="onIncomeInput()"></div>
+            <div class="income-row" style="margin-top:8px;"><label>Other income</label><input type="text" inputmode="decimal" id="incYouOther" placeholder="0" oninput="onIncomeInput()"></div>
             <div class="col-total"><span>Monthly total</span><b id="incYouTotal">$0</b></div>
           </div>
           <div class="divider"></div>
           <div class="col">
             <div class="col-head"><span class="swatch her"></span><span id="incLabelHer">Her</span></div>
-            <div class="income-row"><label>Primary job</label><input type="number" id="incHerPrimary" placeholder="0" oninput="onIncomeInput()"></div>
-            <div class="income-row" style="margin-top:8px;"><label>Weekly salary</label><input type="number" id="incHerWeekly" placeholder="0" oninput="onIncomeInput()"></div>
+            <div class="income-row"><label>Primary job</label><input type="text" inputmode="decimal" id="incHerPrimary" placeholder="0" oninput="onIncomeInput()"></div>
+            <div class="income-row" style="margin-top:8px;"><label>Weekly salary</label><input type="text" inputmode="decimal" id="incHerWeekly" placeholder="0" oninput="onIncomeInput()"></div>
             <div class="income-sub" id="incHerWeeklySub">≈ $0/mo</div>
-            <div class="income-row" style="margin-top:8px;"><label>Other income</label><input type="number" id="incHerOther" placeholder="0" oninput="onIncomeInput()"></div>
+            <div class="income-row" style="margin-top:8px;"><label>Other income</label><input type="text" inputmode="decimal" id="incHerOther" placeholder="0" oninput="onIncomeInput()"></div>
             <div class="col-total"><span>Monthly total</span><b id="incHerTotal">$0</b></div>
           </div>
         </div>
@@ -653,30 +653,30 @@
           <div class="annual-ref-cols">
             <div class="annual-ref-col">
               <div class="col-head"><span class="swatch you"></span><span id="refLabelYou">Him</span></div>
-              <div class="ref-row"><label>Base pay</label><input type="number" id="refYouBase" placeholder="0" oninput="onRefInput('you')"></div>
-              <div class="ref-row"><label>Overtime</label><input type="number" id="refYouOvertime" placeholder="0" oninput="onRefInput('you')"></div>
-              <div class="ref-row"><label>Holiday bonus</label><input type="number" id="refYouHoliday" placeholder="0" oninput="onRefInput('you')"></div>
-              <div class="ref-row"><label>Cash bonus</label><input type="number" id="refYouCash" placeholder="0" oninput="onRefInput('you')"></div>
-              <div class="ref-row"><label>RSU value</label><input type="number" id="refYouRsu" placeholder="0" oninput="onRefInput('you')"></div>
+              <div class="ref-row"><label>Base pay</label><input type="text" inputmode="decimal" id="refYouBase" placeholder="0" oninput="onRefInput('you')"></div>
+              <div class="ref-row"><label>Overtime</label><input type="text" inputmode="decimal" id="refYouOvertime" placeholder="0" oninput="onRefInput('you')"></div>
+              <div class="ref-row"><label>Holiday bonus</label><input type="text" inputmode="decimal" id="refYouHoliday" placeholder="0" oninput="onRefInput('you')"></div>
+              <div class="ref-row"><label>Cash bonus</label><input type="text" inputmode="decimal" id="refYouCash" placeholder="0" oninput="onRefInput('you')"></div>
+              <div class="ref-row"><label>RSU value</label><input type="text" inputmode="decimal" id="refYouRsu" placeholder="0" oninput="onRefInput('you')"></div>
               <div class="ref-bonus-list" id="refYouBonusList"></div>
               <button class="ref-add-bonus-btn" onclick="addRefBonus('you','')">+ Add other bonus</button>
               <div class="ref-total"><span>Total annual</span><b id="refYouTotal">$0</b></div>
-              <div class="ref-rate-row"><label>Hourly wage</label><input type="number" step="0.01" id="refYouHourly" placeholder="0.00" oninput="onRefInput('you')"></div>
-              <div class="ref-rate-row"><label>Overtime wage</label><input type="number" step="0.01" id="refYouOtWage" placeholder="0.00" oninput="onRefInput('you')"></div>
+              <div class="ref-rate-row"><label>Hourly wage</label><input type="text" inputmode="decimal" step="0.01" id="refYouHourly" placeholder="0.00" oninput="onRefInput('you')"></div>
+              <div class="ref-rate-row"><label>Overtime wage</label><input type="text" inputmode="decimal" step="0.01" id="refYouOtWage" placeholder="0.00" oninput="onRefInput('you')"></div>
             </div>
             <div class="annual-ref-divider"></div>
             <div class="annual-ref-col">
               <div class="col-head"><span class="swatch her"></span><span id="refLabelHer">Her</span></div>
-              <div class="ref-row"><label>Base pay</label><input type="number" id="refHerBase" placeholder="0" oninput="onRefInput('her')"></div>
-              <div class="ref-row"><label>Overtime</label><input type="number" id="refHerOvertime" placeholder="0" oninput="onRefInput('her')"></div>
-              <div class="ref-row"><label>Holiday bonus</label><input type="number" id="refHerHoliday" placeholder="0" oninput="onRefInput('her')"></div>
-              <div class="ref-row"><label>Cash bonus</label><input type="number" id="refHerCash" placeholder="0" oninput="onRefInput('her')"></div>
-              <div class="ref-row"><label>RSU value</label><input type="number" id="refHerRsu" placeholder="0" oninput="onRefInput('her')"></div>
+              <div class="ref-row"><label>Base pay</label><input type="text" inputmode="decimal" id="refHerBase" placeholder="0" oninput="onRefInput('her')"></div>
+              <div class="ref-row"><label>Overtime</label><input type="text" inputmode="decimal" id="refHerOvertime" placeholder="0" oninput="onRefInput('her')"></div>
+              <div class="ref-row"><label>Holiday bonus</label><input type="text" inputmode="decimal" id="refHerHoliday" placeholder="0" oninput="onRefInput('her')"></div>
+              <div class="ref-row"><label>Cash bonus</label><input type="text" inputmode="decimal" id="refHerCash" placeholder="0" oninput="onRefInput('her')"></div>
+              <div class="ref-row"><label>RSU value</label><input type="text" inputmode="decimal" id="refHerRsu" placeholder="0" oninput="onRefInput('her')"></div>
               <div class="ref-bonus-list" id="refHerBonusList"></div>
               <button class="ref-add-bonus-btn" onclick="addRefBonus('her','')">+ Add other bonus</button>
               <div class="ref-total"><span>Total annual</span><b id="refHerTotal">$0</b></div>
-              <div class="ref-rate-row"><label>Hourly wage</label><input type="number" step="0.01" id="refHerHourly" placeholder="0.00" oninput="onRefInput('her')"></div>
-              <div class="ref-rate-row"><label>Overtime wage</label><input type="number" step="0.01" id="refHerOtWage" placeholder="0.00" oninput="onRefInput('her')"></div>
+              <div class="ref-rate-row"><label>Hourly wage</label><input type="text" inputmode="decimal" step="0.01" id="refHerHourly" placeholder="0.00" oninput="onRefInput('her')"></div>
+              <div class="ref-rate-row"><label>Overtime wage</label><input type="text" inputmode="decimal" step="0.01" id="refHerOtWage" placeholder="0.00" oninput="onRefInput('her')"></div>
             </div>
           </div>
         </div>
@@ -798,10 +798,10 @@
         <div class="split">
           <div class="col" style="grid-column:1/-1;">
             <div class="col-head"><span class="swatch" style="background:var(--gold);"></span><span>Current mortgage</span></div>
-            <div class="income-row"><label>Total mortgage</label><input type="number" id="mortTotal" placeholder="0" oninput="onMortgageInput()"></div>
-            <div class="income-row" style="margin-top:8px;"><label>Principal payment</label><input type="number" id="mortPrincipal" placeholder="0" oninput="onMortgageInput()"></div>
-            <div class="income-row" style="margin-top:8px;"><label>Taxes</label><input type="number" id="mortTaxes" placeholder="0" oninput="onMortgageInput()"></div>
-            <div class="income-row" style="margin-top:8px;"><label>Other cost</label><input type="number" id="mortOther" placeholder="0" oninput="onMortgageInput()"></div>
+            <div class="income-row"><label>Total mortgage</label><input type="text" inputmode="decimal" id="mortTotal" placeholder="0" oninput="onMortgageInput()"></div>
+            <div class="income-row" style="margin-top:8px;"><label>Principal payment</label><input type="text" inputmode="decimal" id="mortPrincipal" placeholder="0" oninput="onMortgageInput()"></div>
+            <div class="income-row" style="margin-top:8px;"><label>Taxes</label><input type="text" inputmode="decimal" id="mortTaxes" placeholder="0" oninput="onMortgageInput()"></div>
+            <div class="income-row" style="margin-top:8px;"><label>Other cost</label><input type="text" inputmode="decimal" id="mortOther" placeholder="0" oninput="onMortgageInput()"></div>
             <div class="col-total"><span>Total monthly payment</span><b id="mortMonthlyTotal" style="color:var(--gold);">$0</b></div>
           </div>
         </div>
@@ -842,17 +842,17 @@
           <div class="job-cards" style="grid-template-columns:1fr;">
             <div class="job-card">
               <label>Home price</label>
-              <input type="number" id="mcPrice" placeholder="0" oninput="renderMortgageCalc()">
+              <input type="text" inputmode="decimal" id="mcPrice" placeholder="0" oninput="renderMortgageCalc()">
               <label>Down payment</label>
-              <input type="number" id="mcDown" placeholder="0" oninput="renderMortgageCalc()">
+              <input type="text" inputmode="decimal" id="mcDown" placeholder="0" oninput="renderMortgageCalc()">
               <label>Interest rate (%)</label>
-              <input type="number" step="0.01" id="mcRate" placeholder="6.50" oninput="renderMortgageCalc()">
+              <input type="text" inputmode="decimal" step="0.01" id="mcRate" placeholder="6.50" oninput="renderMortgageCalc()">
               <label>Loan term (years)</label>
-              <input type="number" id="mcYears" placeholder="30" oninput="renderMortgageCalc()">
+              <input type="text" inputmode="decimal" id="mcYears" placeholder="30" oninput="renderMortgageCalc()">
               <label>Property tax rate (annual %)</label>
-              <input type="number" step="0.01" id="mcTaxRate" placeholder="1.20" oninput="renderMortgageCalc()">
+              <input type="text" inputmode="decimal" step="0.01" id="mcTaxRate" placeholder="1.20" oninput="renderMortgageCalc()">
               <label>Insurance & HOA (monthly)</label>
-              <input type="number" id="mcInsurance" placeholder="0" oninput="renderMortgageCalc()">
+              <input type="text" inputmode="decimal" id="mcInsurance" placeholder="0" oninput="renderMortgageCalc()">
               <div class="job-results" id="mortCalcResults">
                 <div class="job-result-row"><span>Loan amount</span><span>$0</span></div>
                 <div class="job-result-row"><span>Monthly principal & interest</span><span>$0</span></div>
@@ -1273,7 +1273,7 @@ function updateJobField(id, field, value){
   const job = (yr().jobCalcs||[]).find(j=>j.id===id);
   if(!job) return;
   const numFields = ['rate','hours','ded401k','dedHsa','dedBen','dedOther'];
-  job[field] = numFields.includes(field) ? (parseFloat(value)||0) : value;
+  job[field] = numFields.includes(field) ? (numVal(value)||0) : value;
   cascadeForward('jobCalcs');
   refreshJobCardResults(id);
   scheduleSave();
@@ -1344,18 +1344,18 @@ function renderJobCalcs(){
           <option value="married" ${job.filing==='married'?'selected':''}>Married filing jointly</option>
         </select>
         <label>Hourly rate ($)</label>
-        <input type="number" placeholder="0.00" step="0.01" value="${job.rate||''}" oninput="updateJobField('${job.id}','rate',this.value)">
+        <input type="text" inputmode="decimal" placeholder="0.00" step="0.01" value="${job.rate||''}" oninput="updateJobField('${job.id}','rate',this.value)">
         <label>Hours per week</label>
-        <input type="number" placeholder="40" value="${job.hours||''}" oninput="updateJobField('${job.id}','hours',this.value)">
+        <input type="text" inputmode="decimal" placeholder="40" value="${job.hours||''}" oninput="updateJobField('${job.id}','hours',this.value)">
         <div class="job-ded-head">Pre-tax deductions <span>(monthly)</span></div>
         <label>401(k) / 403(b)</label>
-        <input type="number" placeholder="0" value="${job.ded401k||''}" oninput="updateJobField('${job.id}','ded401k',this.value)">
+        <input type="text" inputmode="decimal" placeholder="0" value="${job.ded401k||''}" oninput="updateJobField('${job.id}','ded401k',this.value)">
         <label>HSA</label>
-        <input type="number" placeholder="0" value="${job.dedHsa||''}" oninput="updateJobField('${job.id}','dedHsa',this.value)">
+        <input type="text" inputmode="decimal" placeholder="0" value="${job.dedHsa||''}" oninput="updateJobField('${job.id}','dedHsa',this.value)">
         <label>Benefits (health/dental/vision)</label>
-        <input type="number" placeholder="0" value="${job.dedBen||''}" oninput="updateJobField('${job.id}','dedBen',this.value)">
+        <input type="text" inputmode="decimal" placeholder="0" value="${job.dedBen||''}" oninput="updateJobField('${job.id}','dedBen',this.value)">
         <label>Other pre-tax</label>
-        <input type="number" placeholder="0" value="${job.dedOther||''}" oninput="updateJobField('${job.id}','dedOther',this.value)">
+        <input type="text" inputmode="decimal" placeholder="0" value="${job.dedOther||''}" oninput="updateJobField('${job.id}','dedOther',this.value)">
         <div class="job-results" id="jobResults_${job.id}">
           <div class="job-result-row"><span>Monthly gross</span><span>${fmt(monthlyGross)}</span></div>
           <div class="job-result-row"><span>Federal income tax</span><span>−${fmt(monthlyFed)}</span></div>
@@ -1377,13 +1377,13 @@ function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
 function onRefInput(who, suffix){
   suffix = suffix || '';
   const r = yr().annualRef[who];
-  r.base     = parseFloat(document.getElementById('ref'+cap(who)+'Base'+suffix).value)||0;
-  r.overtime = parseFloat(document.getElementById('ref'+cap(who)+'Overtime'+suffix).value)||0;
-  r.holiday  = parseFloat(document.getElementById('ref'+cap(who)+'Holiday'+suffix).value)||0;
-  r.cash     = parseFloat(document.getElementById('ref'+cap(who)+'Cash'+suffix).value)||0;
-  r.rsu      = parseFloat(document.getElementById('ref'+cap(who)+'Rsu'+suffix).value)||0;
-  r.hourly   = parseFloat(document.getElementById('ref'+cap(who)+'Hourly'+suffix).value)||0;
-  r.otWage   = parseFloat(document.getElementById('ref'+cap(who)+'OtWage'+suffix).value)||0;
+  r.base     = numVal(document.getElementById('ref'+cap(who)+'Base'+suffix).value)||0;
+  r.overtime = numVal(document.getElementById('ref'+cap(who)+'Overtime'+suffix).value)||0;
+  r.holiday  = numVal(document.getElementById('ref'+cap(who)+'Holiday'+suffix).value)||0;
+  r.cash     = numVal(document.getElementById('ref'+cap(who)+'Cash'+suffix).value)||0;
+  r.rsu      = numVal(document.getElementById('ref'+cap(who)+'Rsu'+suffix).value)||0;
+  r.hourly   = numVal(document.getElementById('ref'+cap(who)+'Hourly'+suffix).value)||0;
+  r.otWage   = numVal(document.getElementById('ref'+cap(who)+'OtWage'+suffix).value)||0;
   updateRefTotal(who);
   cascadeForward('annualRef');
   // mirror to the other tab's copy only — never touch the field being typed in
@@ -1454,7 +1454,7 @@ function updateRefBonusField(who, id, field, value, suffix){
   const r = yr().annualRef[who];
   const b = (r.bonuses||[]).find(x=>x.id===id);
   if(!b) return;
-  b[field] = field==='amount' ? (parseFloat(value)||0) : value;
+  b[field] = field==='amount' ? (numVal(value)||0) : value;
   updateRefTotal(who);
   cascadeForward('annualRef');
   // mirror to the other tab's copy only — never touch the field being typed in
@@ -1469,7 +1469,7 @@ function renderRefBonusList(who, suffix){
   el.innerHTML = bonuses.map(b=>`
     <div class="ref-bonus-row">
       <input type="text" placeholder="e.g. Signing bonus" value="${escapeHtml(b.name)}" oninput="updateRefBonusField('${who}','${b.id}','name',this.value,'${suffix}')">
-      <input type="number" placeholder="0" value="${b.amount||''}" oninput="updateRefBonusField('${who}','${b.id}','amount',this.value,'${suffix}')">
+      <input type="text" inputmode="decimal" placeholder="0" value="${b.amount||''}" oninput="updateRefBonusField('${who}','${b.id}','amount',this.value,'${suffix}')">
       <button class="remove-btn" onclick="removeRefBonus('${who}','${b.id}')">×</button>
     </div>
   `).join('');
@@ -1485,12 +1485,12 @@ function applyNameLabelsRef(){
 
 // ---------- INCOME ----------
 function onIncomeInput(){
-  yr().income.youPrimary = parseFloat(document.getElementById('incYouPrimary').value)||0;
-  yr().income.youWeekly  = parseFloat(document.getElementById('incYouWeekly').value)||0;
-  yr().income.youOther   = parseFloat(document.getElementById('incYouOther').value)||0;
-  yr().income.herPrimary = parseFloat(document.getElementById('incHerPrimary').value)||0;
-  yr().income.herWeekly  = parseFloat(document.getElementById('incHerWeekly').value)||0;
-  yr().income.herOther   = parseFloat(document.getElementById('incHerOther').value)||0;
+  yr().income.youPrimary = numVal(document.getElementById('incYouPrimary').value)||0;
+  yr().income.youWeekly  = numVal(document.getElementById('incYouWeekly').value)||0;
+  yr().income.youOther   = numVal(document.getElementById('incYouOther').value)||0;
+  yr().income.herPrimary = numVal(document.getElementById('incHerPrimary').value)||0;
+  yr().income.herWeekly  = numVal(document.getElementById('incHerWeekly').value)||0;
+  yr().income.herOther   = numVal(document.getElementById('incHerOther').value)||0;
   updateWeeklySalarySubs();
   cascadeForward('income');
   recalc();
@@ -1514,10 +1514,10 @@ function updateWeeklySalarySubs(){
 // ---------- MORTGAGE ----------
 function onMortgageInput(){
   const m = yr().mortgage;
-  m.total     = parseFloat(document.getElementById('mortTotal').value)||0;
-  m.principal = parseFloat(document.getElementById('mortPrincipal').value)||0;
-  m.taxes     = parseFloat(document.getElementById('mortTaxes').value)||0;
-  m.other     = parseFloat(document.getElementById('mortOther').value)||0;
+  m.total     = numVal(document.getElementById('mortTotal').value)||0;
+  m.principal = numVal(document.getElementById('mortPrincipal').value)||0;
+  m.taxes     = numVal(document.getElementById('mortTaxes').value)||0;
+  m.other     = numVal(document.getElementById('mortOther').value)||0;
   cascadeForward('mortgage');
   recalc();
 }
@@ -1551,12 +1551,12 @@ function renderMortgageCalc(){
   const m = yr().mortgage;
   if(!m.calc) m.calc = { price:0, down:0, rate:6.5, years:30, taxRate:1.2, insurance:0 };
   const c = m.calc;
-  c.price     = parseFloat(document.getElementById('mcPrice').value)||0;
-  c.down      = parseFloat(document.getElementById('mcDown').value)||0;
-  c.rate      = parseFloat(document.getElementById('mcRate').value)||0;
-  c.years     = parseFloat(document.getElementById('mcYears').value)||0;
-  c.taxRate   = parseFloat(document.getElementById('mcTaxRate').value)||0;
-  c.insurance = parseFloat(document.getElementById('mcInsurance').value)||0;
+  c.price     = numVal(document.getElementById('mcPrice').value)||0;
+  c.down      = numVal(document.getElementById('mcDown').value)||0;
+  c.rate      = numVal(document.getElementById('mcRate').value)||0;
+  c.years     = numVal(document.getElementById('mcYears').value)||0;
+  c.taxRate   = numVal(document.getElementById('mcTaxRate').value)||0;
+  c.insurance = numVal(document.getElementById('mcInsurance').value)||0;
 
   const loanAmount = Math.max(0, c.price - c.down);
   const monthlyPI  = calcMortgagePayment(loanAmount, c.rate, c.years||30);
@@ -1650,7 +1650,7 @@ function renderBillList(prefix){
   el.innerHTML = list.map(r=>`
     <div class="field-row">
       <input type="text" placeholder="${placeholder}" value="${escapeHtml(r.name)}" oninput="updateBillField('${prefix}','${r.id}','name',this.value)">
-      <input type="number" placeholder="0" value="${r.amount||''}" oninput="updateBillField('${prefix}','${r.id}','amount',this.value)">
+      <input type="text" inputmode="decimal" placeholder="0" value="${r.amount||''}" oninput="updateBillField('${prefix}','${r.id}','amount',this.value)">
       <button class="remove-btn" onclick="removeBillRow('${prefix}','${r.id}')">×</button>
     </div>
   `).join('');
@@ -1659,7 +1659,7 @@ function updateBillField(prefix, id, field, value){
   const owner = prefix.includes('You') ? 'you' : 'her';
   const bucket = getBucket(prefix);
   const row = bucket[owner].find(r=>r.id===id);
-  if(row){ row[field] = field==='amount' ? parseFloat(value)||0 : value; }
+  if(row){ row[field] = field==='amount' ? numVal(value)||0 : value; }
   cascadeForward(bucketSection(prefix));
   recalc();
 }
@@ -1705,9 +1705,9 @@ function renderDebtTable(pool){
           ${types.map(t=>`<option ${d.type===t?'selected':''}>${t}</option>`).join('')}
         </select>
       </td>
-      <td><input type="number" placeholder="0" value="${d.amount||''}" oninput="updateDebtField('${pool}','${d.id}','amount',this.value)"></td>
-      <td><input type="number" placeholder="0" step="0.1" value="${d.rate||''}" oninput="updateDebtField('${pool}','${d.id}','rate',this.value)"></td>
-      <td><input type="number" placeholder="0" value="${d.minPay||''}" oninput="updateDebtField('${pool}','${d.id}','minPay',this.value)"></td>
+      <td><input type="text" inputmode="decimal" placeholder="0" value="${d.amount||''}" oninput="updateDebtField('${pool}','${d.id}','amount',this.value)"></td>
+      <td><input type="text" inputmode="decimal" placeholder="0" step="0.1" value="${d.rate||''}" oninput="updateDebtField('${pool}','${d.id}','rate',this.value)"></td>
+      <td><input type="text" inputmode="decimal" placeholder="0" value="${d.minPay||''}" oninput="updateDebtField('${pool}','${d.id}','minPay',this.value)"></td>
       <td><button class="remove-btn" onclick="removeDebtRow('${pool}','${d.id}')">×</button></td>
     </tr>
   `).join('');
@@ -1716,7 +1716,7 @@ function updateDebtField(pool, id, field, value){
   const list = pool==='creditcar' ? yr().creditcars : yr().debts;
   const row = list.find(d=>d.id===id);
   if(row){
-    if(field==='amount'||field==='rate'||field==='minPay') row[field]=parseFloat(value)||0;
+    if(field==='amount'||field==='rate'||field==='minPay') row[field]=numVal(value)||0;
     else row[field]=value;
   }
   cascadeForward(pool==='creditcar' ? 'creditcars' : 'debts');
@@ -1738,8 +1738,8 @@ function renderBudgetTable(){
     const rows = items.length ? items.map(it=>`
       <div class="cat-item-row" data-item="${it.id}">
         <input type="text" placeholder="e.g. Groceries" value="${escapeHtml(it.name)}" oninput="updateBudgetItem('${cat}','${it.id}','name',this.value)">
-        <input type="number" placeholder="0" value="${it.projected||''}" oninput="updateBudgetItem('${cat}','${it.id}','projected',this.value)">
-        <input type="number" placeholder="0" value="${it.actual||''}" oninput="updateBudgetItem('${cat}','${it.id}','actual',this.value)">
+        <input type="text" inputmode="decimal" placeholder="0" value="${it.projected||''}" oninput="updateBudgetItem('${cat}','${it.id}','projected',this.value)">
+        <input type="text" inputmode="decimal" placeholder="0" value="${it.actual||''}" oninput="updateBudgetItem('${cat}','${it.id}','actual',this.value)">
         <span class="item-diff" id="itemDiff_${it.id}">$0</span>
         <button class="remove-btn" onclick="removeBudgetItem('${cat}','${it.id}')">×</button>
       </div>
@@ -1768,7 +1768,7 @@ function addBudgetItem(cat){
 }
 function updateBudgetItem(cat, id, field, value){
   const item = (yr().budgetItems[cat]||[]).find(i=>i.id===id);
-  if(item){ item[field] = (field==='projected'||field==='actual') ? (parseFloat(value)||0) : value; }
+  if(item){ item[field] = (field==='projected'||field==='actual') ? (numVal(value)||0) : value; }
   cascadeForward('budgetItems');
   recalc();
 }
@@ -1788,7 +1788,7 @@ function renderPlannedTable(){
     const rows = items.length ? items.map(it=>`
       <div class="planned-item-row" data-item="${it.id}">
         <input type="text" placeholder="e.g. Cancun trip" value="${escapeHtml(it.name)}" oninput="updatePlannedItem('${cat}','${it.id}','name',this.value)">
-        <input type="number" placeholder="0" value="${it.amount||''}" oninput="updatePlannedItem('${cat}','${it.id}','amount',this.value)">
+        <input type="text" inputmode="decimal" placeholder="0" value="${it.amount||''}" oninput="updatePlannedItem('${cat}','${it.id}','amount',this.value)">
         <button class="remove-btn" onclick="removePlannedItem('${cat}','${it.id}')">×</button>
       </div>
     `).join('') : '<div class="empty-hint">Nothing added yet.</div>';
@@ -1817,7 +1817,7 @@ function addPlannedItem(cat){
 }
 function updatePlannedItem(cat, id, field, value){
   const item = (yr().plannedExpenses[cat]||[]).find(i=>i.id===id);
-  if(item){ item[field] = field==='amount' ? (parseFloat(value)||0) : value; }
+  if(item){ item[field] = field==='amount' ? (numVal(value)||0) : value; }
   cascadeForward('plannedExpenses');
   recalc();
 }
@@ -1832,6 +1832,9 @@ function removePlannedItem(cat, id){
 function fmt(n){
   const v = Math.round(n||0);
   return (v<0?'-$':'$') + Math.abs(v).toLocaleString();
+}
+function numVal(v){
+  return parseFloat(String(v==null?'':v).replace(/,/g,''))||0;
 }
 function escapeHtml(s){
   return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
