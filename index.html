@@ -1670,6 +1670,22 @@ function renderSimLedger(hisLoans){
   </tr>`;
 }
 
+function loanInterestStatus(type){
+  if(type==='Federal Subsidized'){
+    return '<span style="color:var(--you);">No interest — govt-paid while enrolled ≥ half-time</span>';
+  }
+  if(type==='Federal Unsubsidized'){
+    return '<span style="color:var(--bad);">Accruing now — capitalizes when repayment starts</span>';
+  }
+  if(type==='PLUS Loan'){
+    return '<span style="color:var(--bad);">Accruing now — no in-school subsidy on PLUS loans</span>';
+  }
+  if(type==='Private Student Loan'){
+    return '<span style="color:var(--bad);">Likely accruing — check your lender\'s deferment terms</span>';
+  }
+  return '<span style="color:var(--gold);">Unknown type — check your loan terms</span>';
+}
+
 function renderLoanStrategy(){
   const y = state.years[2026];
   if(!y) return;
@@ -1685,10 +1701,7 @@ function renderLoanStrategy(){
     tbody.innerHTML = '<tr><td colspan="5"><div class="empty-hint">No school loans found for '+escapeHtml(state.names.you)+' in 2026.</div></td></tr>';
   } else {
     tbody.innerHTML = hisLoans.map(d=>{
-      const isSub = d.type==='Federal Subsidized';
-      const status = isSub
-        ? '<span style="color:var(--you);">No interest — subsidized, in school</span>'
-        : '<span style="color:var(--bad);">Accruing interest now</span>';
+      const status = loanInterestStatus(d.type);
       return `<tr>
         <td>${escapeHtml(d.name)||'Untitled'}</td>
         <td>${escapeHtml(d.type)}</td>
