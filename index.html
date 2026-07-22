@@ -639,6 +639,18 @@
               <div class="sub">combined monthly</div>
             </div>
           </div>
+          <div class="stat-grid" style="grid-template-columns:1fr 1fr;margin-top:14px;margin-bottom:0;">
+            <div class="stat-card">
+              <div class="label" id="jointRemainYouLabel">Him's income left after joint contribution</div>
+              <div class="value" id="jointRemainYou">$0</div>
+              <div class="sub">income minus his 50% share</div>
+            </div>
+            <div class="stat-card">
+              <div class="label" id="jointRemainHerLabel">Her income left after joint contribution</div>
+              <div class="value" id="jointRemainHer">$0</div>
+              <div class="sub">income minus her 50% share</div>
+            </div>
+          </div>
         </div>
 
         <div class="confluence">
@@ -1994,6 +2006,10 @@ function recalc(){
     document.getElementById('jointContribYou').textContent = fmt(moJointSplit);
     document.getElementById('jointContribHer').textContent = fmt(moJointSplit);
     document.getElementById('jointContribTotal').textContent = fmt(moJointSum);
+    document.getElementById('jointRemainYouLabel').textContent = `${state.names.you}'s income left after joint contribution`;
+    document.getElementById('jointRemainHerLabel').textContent = `${state.names.her}'s income left after joint contribution`;
+    document.getElementById('jointRemainYou').textContent = fmt(incYou - moJointSplit);
+    document.getElementById('jointRemainHer').textContent = fmt(incHer - moJointSplit);
   }
 
   // Savings
