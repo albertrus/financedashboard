@@ -216,6 +216,8 @@
   .stat-card .value.bad{color:var(--bad);}
   .stat-card .sub{font-size:12px;color:var(--ink-soft);margin-top:4px;}
 
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+
   .compare-table{width:100%;border-collapse:collapse;margin-bottom:28px;}
   .compare-table th{
     font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;
@@ -445,21 +447,63 @@
   .job-ded-head span{font-size:9px;}
 
   @media(max-width:700px){
+    body{-webkit-text-size-adjust:100%;}
+    .app{padding:16px 12px 60px;}
     .layout{flex-direction:column;}
     .year-sidebar{width:100%;display:flex;flex-direction:row;margin-right:0;margin-bottom:16px;}
     .year-sidebar-label{display:none;}
-    .year-btn{border-bottom:none;border-right:1px solid var(--line);flex:1;padding:10px 0;}
+    .year-btn{border-bottom:none;border-right:1px solid var(--line);flex:1;padding:10px 0;font-size:14px;}
     .year-btn:last-child{border-right:none;}
+    .names-bar{grid-template-columns:1fr 1fr;}
+    .name-field{padding:10px 12px;}
+    .name-field input{font-size:16px;}
     .split{grid-template-columns:1fr;}
     .split .divider{display:none;}
+    .split .col{padding:16px 14px;}
     .split .col:first-child{border-bottom:1px solid var(--line-strong);}
-    .stat-grid{grid-template-columns:1fr;}
+    .stat-grid{grid-template-columns:1fr!important;gap:10px;}
+    .stat-card{padding:14px 16px;}
+    .stat-card .value{font-size:22px;}
     .ov-savings-cols{grid-template-columns:1fr;}
     .ov-savings-divider{display:none;}
+    .ov-savings-col{padding:14px 16px;}
     .ov-savings-col:first-child{border-bottom:1px solid var(--line-strong);}
-    .tabs{overflow-x:auto;}
+    .ov-savings-block{padding:14px;}
+    .ov-savings-block .amount{font-size:24px;}
+    .tabs{overflow-x:auto;flex-wrap:nowrap;}
     .tab{font-size:9px;padding:9px 3px;flex:1 1 auto;}
-    .masthead h1{font-size:26px;}
+    .masthead h1{font-size:24px;}
+    .masthead{padding-bottom:12px;}
+    h2.section-title{font-size:19px;}
+
+    /* wide tables scroll instead of squeezing illegibly small */
+    .compare-table,.budget-table,.debt-table{font-size:11.5px;}
+    .compare-table th,.compare-table td{padding:7px 8px;}
+    .debt-table th,.debt-table td{padding:5px 6px;}
+    .debt-table{min-width:560px;}
+    .compare-table{min-width:420px;}
+    .budget-table{min-width:380px;}
+
+    .annual-ref-cols{grid-template-columns:1fr;}
+    .annual-ref-divider{display:none;}
+    .annual-ref-col{padding:14px 16px;}
+    .annual-ref-col:first-child{border-bottom:1px solid var(--line-strong);}
+
+    .job-cards{grid-template-columns:1fr!important;}
+
+    .cat-item-row,.cat-col-labels{grid-template-columns:1.3fr 0.75fr 0.75fr 0.55fr 18px;gap:5px;}
+    .cat-item-row input[type=text],.cat-item-row input[inputmode=decimal]{font-size:12px;padding:6px 6px;}
+    .cat-col-labels{font-size:8.5px;}
+    .cat-item-row .item-diff{font-size:11px;}
+
+    .planned-item-row,.planned-col-labels{grid-template-columns:1.4fr 0.8fr 18px;gap:6px;}
+    .planned-item-row input[type=text],.planned-item-row input[inputmode=decimal]{font-size:12px;padding:6px 6px;}
+
+    .field-row input[type=text],.field-row input[inputmode=decimal]{font-size:12.5px;padding:7px 8px;}
+    .field-row select{font-size:11px;}
+
+    .income-row label{width:90px;font-size:11px;}
+    .ref-row label,.ref-rate-row label{font-size:11px;}
   }
 </style>
 </head>
@@ -534,6 +578,7 @@
           </div>
         </div>
 
+        <div class="table-scroll">
         <table class="compare-table">
           <thead>
             <tr>
@@ -545,6 +590,7 @@
           </thead>
           <tbody id="compareBody"></tbody>
         </table>
+        </div>
 
         <div class="confluence">
           <div class="confluence-line"></div>
@@ -742,6 +788,7 @@
         <h2 class="section-title">Monthly budget: projected vs. actual</h2>
         <p class="section-sub">Set what you expect to spend, then log what actually happened.</p>
         <div id="budgetCategories"></div>
+        <div class="table-scroll">
         <table class="budget-table" style="margin-top:8px;">
           <tbody>
             <tr class="total-row">
@@ -752,18 +799,21 @@
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
 
       <!-- SCHOOL LOANS -->
       <div class="panel" id="panel-debt">
         <h2 class="section-title">School loans</h2>
         <p class="section-sub">Student loans of any kind. Feeds into your combined debt total.</p>
+        <div class="table-scroll">
         <table class="debt-table">
           <thead>
             <tr><th style="width:26%">Name</th><th style="width:14%">Owner</th><th style="width:14%">Type</th><th style="width:15%">Amount owed</th><th style="width:14%">Interest rate</th><th style="width:15%">Min. payment</th><th></th></tr>
           </thead>
           <tbody id="debtBody"></tbody>
         </table>
+        </div>
         <button class="add-btn" onclick="addDebtRow('school')">+ Add school loan</button>
         <div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:24px;">
           <div class="stat-card"><div class="label">Total owed</div><div class="value" id="debtTotalOwed">$0</div></div>
@@ -776,12 +826,14 @@
       <div class="panel" id="panel-creditcar">
         <h2 class="section-title">Credit & car loans</h2>
         <p class="section-sub">Credit cards, auto loans, personal loans — anything non-school. Also feeds your combined debt total.</p>
+        <div class="table-scroll">
         <table class="debt-table">
           <thead>
             <tr><th style="width:26%">Name</th><th style="width:14%">Owner</th><th style="width:14%">Type</th><th style="width:15%">Amount owed</th><th style="width:14%">Interest rate</th><th style="width:15%">Min. payment</th><th></th></tr>
           </thead>
           <tbody id="creditcarBody"></tbody>
         </table>
+        </div>
         <button class="add-btn" onclick="addDebtRow('creditcar')">+ Add credit / car loan</button>
         <div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:24px;">
           <div class="stat-card"><div class="label">Total owed</div><div class="value" id="creditcarTotalOwed">$0</div></div>
@@ -898,6 +950,7 @@
         <h2 class="section-title">Planned expenses</h2>
         <p class="section-sub">Trips, home repairs, and anything else you're planning for. Add as many as you need under each category.</p>
         <div id="plannedCategories"></div>
+        <div class="table-scroll">
         <table class="budget-table" style="margin-top:8px;">
           <tbody>
             <tr class="total-row">
@@ -906,6 +959,7 @@
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
 
     </div><!-- /main-content -->
