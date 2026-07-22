@@ -1105,6 +1105,8 @@
               <div class="job-result-row"><span>Interest rate</span><span id="lsSimRate">0%</span></div>
               <div class="job-result-row net"><span>Remaining balance</span><span id="lsSimBalanceDisplay">$0</span></div>
             </div>
+            <label style="margin-top:14px;">Payment date</label>
+            <input type="date" id="lsSimDateInput">
             <label style="margin-top:14px;">Monthly payment</label>
             <input type="text" inputmode="decimal" id="lsSimMonthlyInput" placeholder="0">
             <button class="apply-btn" onclick="applySimMonthly()">→ Apply one month's payment</button>
@@ -1114,8 +1116,14 @@
             <button class="add-btn" style="margin-top:10px;" onclick="resetSimLoan()">↺ Reset to current balance</button>
             <div class="table-scroll" style="margin-top:16px;">
               <table class="debt-table">
-                <thead><tr><th>Step</th><th>Action</th><th>Payment</th><th>Interest</th><th>Balance after</th></tr></thead>
+                <thead><tr><th>Step</th><th>Date</th><th>Action</th><th>Payment</th><th>Interest</th><th>Balance after</th></tr></thead>
                 <tbody id="lsSimLedger"></tbody>
+                <tfoot>
+                  <tr style="font-weight:700;border-top:1.5px solid var(--ink);">
+                    <td colspan="5" style="padding:8px;">Total amount due</td>
+                    <td id="lsSimTotalDue" style="padding:8px;text-align:right;">$0</td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </div>
@@ -1510,8 +1518,23 @@ function initSimLoan(){
   lsSimBalance = loan.amount||0;
   lsSimLedgerRows = [];
   lsSimStep = 0;
+  const dateInput = document.getElementById('lsSimDateInput');
+  if(dateInput && !dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
   updateSimDisplay(loan);
   renderSimLedger();
+}
+function advanceSimDateByMonth(){
+  const dateInput = document.getElementById('lsSimDateInput');
+  if(!dateInput || !dateInput.value) return;
+  const d = new Date(dateInput.value+'T00:00:00');
+  d.setMonth(d.getMonth()+1);
+  dateInput.value = d.toISOString().slice(0,10);
+}
+function formatSimDate(dateStr){
+  if(!dateStr) return '—';
+  const d = new Date(dateStr+'T00:00:00');
+  if(isNaN(d.getTime())) return dateStr;
+  return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
 }
 function populateSimLoanSelect(hisLoans){
   const sel = document.getElementById('lsSimLoanSelect');
@@ -1519,7 +1542,7 @@ function populateSimLoanSelect(hisLoans){
   if(hisLoans.length===0){ sel.innerHTML = '<option>No loans</option>'; return; }
   const needsInit = !lsSimLoanId || !hisLoans.find(d=>d.id===lsSimLoanId);
   sel.innerHTML = hisLoans.map(d=>
-    `<option value="${d.id}" ${d.id===lsSimLoanId?'selected':''}>${escapeHtml(d.name)||'Untitled'} (${escapeHtml(d.type)})</option>`
+    `<option value="${d.id}" ${d.id===lsSimLoanId?'selected':''}>${escapeHtml(d.name)||'Untitled'} (${escapeHtml(d.type)}) — ${fmt(d.amount||0)}</option>`
   ).join('');
   if(needsInit){
     lsSimLoanId = hisLoans[0].id;
@@ -1542,24 +1565,27 @@ function applySimMonthly(){
   const loan = getSimLoan();
   if(!loan || lsSimBalance<=0) return;
   const payment = numVal(document.getElementById('lsSimMonthlyInput').value);
+  const date = document.getElementById('lsSimDateInput').value;
   const interest = lsSimBalance*(loan.rate||0)/100/12;
   lsSimBalance += interest;
   const applied = Math.min(payment, lsSimBalance);
   lsSimBalance -= applied;
   lsSimStep++;
-  lsSimLedgerRows.push({step:lsSimStep, action:'Monthly payment', payment:applied, interest, balance:lsSimBalance});
+  lsSimLedgerRows.push({step:lsSimStep, date, action:'Monthly payment', payment:applied, interest, balance:lsSimBalance});
   updateSimDisplay(loan);
   renderSimLedger();
+  advanceSimDateByMonth();
 }
 function applySimLump(){
   const loan = getSimLoan();
   if(!loan || lsSimBalance<=0) return;
   const lumpInput = document.getElementById('lsSimLumpInput');
   const lump = numVal(lumpInput.value);
+  const date = document.getElementById('lsSimDateInput').value;
   const applied = Math.min(lump, lsSimBalance);
   lsSimBalance -= applied;
   lsSimStep++;
-  lsSimLedgerRows.push({step:lsSimStep, action:'Lump sum', payment:applied, interest:0, balance:lsSimBalance});
+  lsSimLedgerRows.push({step:lsSimStep, date, action:'Lump sum', payment:applied, interest:0, balance:lsSimBalance});
   updateSimDisplay(loan);
   renderSimLedger();
   lumpInput.value = '';
@@ -1570,13 +1596,16 @@ function resetSimLoan(){
 function renderSimLedger(){
   const el = document.getElementById('lsSimLedger');
   if(!el) return;
+  const totalEl = document.getElementById('lsSimTotalDue');
+  if(totalEl) totalEl.textContent = fmt(lsSimBalance);
   if(lsSimLedgerRows.length===0){
-    el.innerHTML = '<tr><td colspan="5"><div class="empty-hint">No payments applied yet.</div></td></tr>';
+    el.innerHTML = '<tr><td colspan="6"><div class="empty-hint">No payments applied yet.</div></td></tr>';
     return;
   }
   el.innerHTML = lsSimLedgerRows.map(r=>`
     <tr>
       <td>${r.step}</td>
+      <td>${formatSimDate(r.date)}</td>
       <td>${r.action}</td>
       <td>${fmt(r.payment)}</td>
       <td>${fmt(r.interest)}</td>
