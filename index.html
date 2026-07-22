@@ -1587,13 +1587,11 @@ function renderSimLedger(hisLoans){
   if(!head || !body || !foot) return;
 
   head.innerHTML = `<tr>
-    <th>Step</th><th>Date</th><th>Paid toward</th><th>Payment</th><th>Interest</th>
-    ${hisLoans.map(d=>`<th>${escapeHtml(d.name)||'Untitled'}</th>`).join('')}
-    <th>Total due</th>
+    <th>Step</th><th>Date</th><th>Loan paid</th><th>Payment</th><th>Interest</th><th>Loan balance</th><th>Total due (all loans)</th>
   </tr>`;
 
   if(lsSimLedgerRows.length===0){
-    body.innerHTML = `<tr><td colspan="${5+hisLoans.length+1}"><div class="empty-hint">No payments applied yet.</div></td></tr>`;
+    body.innerHTML = `<tr><td colspan="7"><div class="empty-hint">No payments applied yet.</div></td></tr>`;
   } else {
     body.innerHTML = lsSimLedgerRows.map(r=>`
       <tr>
@@ -1602,7 +1600,7 @@ function renderSimLedger(hisLoans){
         <td>${escapeHtml(r.loanName)}</td>
         <td>${fmt(r.payment)}</td>
         <td>${fmt(r.interest)}</td>
-        ${hisLoans.map(d=>`<td>${fmt(r.balances[d.id]||0)}</td>`).join('')}
+        <td>${fmt(r.balances[r.loanId]||0)}</td>
         <td>${fmt(r.total)}</td>
       </tr>
     `).join('');
@@ -1610,7 +1608,7 @@ function renderSimLedger(hisLoans){
 
   const currentTotal = hisLoans.reduce((s,d)=>s+(lsSimBalances[d.id]||0),0);
   foot.innerHTML = `<tr style="font-weight:700;border-top:1.5px solid var(--ink);">
-    <td colspan="${5+hisLoans.length}" style="padding:8px;">Total amount due</td>
+    <td colspan="6" style="padding:8px;">Total amount due (all loans)</td>
     <td style="padding:8px;">${fmt(currentTotal)}</td>
   </tr>`;
 }
