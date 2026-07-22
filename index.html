@@ -240,6 +240,19 @@
   .compare-table td:first-child{text-align:left;font-family:'Inter',sans-serif;color:var(--ink);}
   .compare-table tr.total-row td{font-weight:700;border-top:1.5px solid var(--ink);border-bottom:none;font-size:14.5px;padding-top:12px;}
 
+  .joint-contrib{
+    margin:24px 0;border:1px solid var(--line-strong);background:var(--bg-panel);padding:16px 18px;
+  }
+  .joint-contrib-head{margin-bottom:14px;}
+  .joint-contrib-head h3{
+    font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin:0 0 2px;color:#8B2635;
+  }
+  .joint-contrib-head .jc-sub{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-soft);
+    text-transform:uppercase;letter-spacing:0.05em;
+  }
+  .joint-contrib .stat-card .value{color:#8B2635;}
+
   .confluence{text-align:center;margin:34px 0 10px;position:relative;}
   .confluence-line{height:1px;background:var(--line-strong);margin:0 auto;max-width:600px;}
   .confluence-label{
@@ -602,6 +615,30 @@
           </thead>
           <tbody id="compareBody"></tbody>
         </table>
+        </div>
+
+        <div class="joint-contrib" id="jointContribSection" style="display:none;">
+          <div class="joint-contrib-head">
+            <h3>Joint bills — 50/50 contribution</h3>
+            <span class="jc-sub">What each of you would pay if split equally</span>
+          </div>
+          <div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr;">
+            <div class="stat-card">
+              <div class="label" id="jointContribYouLabel">Him contributes</div>
+              <div class="value" id="jointContribYou">$0</div>
+              <div class="sub">50% of joint bills</div>
+            </div>
+            <div class="stat-card">
+              <div class="label" id="jointContribHerLabel">Her contributes</div>
+              <div class="value" id="jointContribHer">$0</div>
+              <div class="sub">50% of joint bills</div>
+            </div>
+            <div class="stat-card">
+              <div class="label">Total joint bills</div>
+              <div class="value" id="jointContribTotal">$0</div>
+              <div class="sub">combined monthly</div>
+            </div>
+          </div>
         </div>
 
         <div class="confluence">
@@ -1949,6 +1986,15 @@ function recalc(){
   const moJointTotalEl = document.getElementById('moJointTotal');
   if(moJointTotalEl) moJointTotalEl.textContent = fmt(moJointSum);
   const moJointSplit = moJointSum/2;
+  const jointSection = document.getElementById('jointContribSection');
+  if(jointSection){
+    jointSection.style.display = (activeYear==='joint' && moJointSum>0) ? '' : 'none';
+    document.getElementById('jointContribYouLabel').textContent = `${state.names.you} contributes`;
+    document.getElementById('jointContribHerLabel').textContent = `${state.names.her} contributes`;
+    document.getElementById('jointContribYou').textContent = fmt(moJointSplit);
+    document.getElementById('jointContribHer').textContent = fmt(moJointSplit);
+    document.getElementById('jointContribTotal').textContent = fmt(moJointSum);
+  }
 
   // Savings
   const sv = y.savings || { you:[], her:[] };
