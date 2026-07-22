@@ -1090,6 +1090,38 @@
         </div>
       </div>
 
+      <div class="job-calc-section">
+        <div class="job-calc-header">
+          <div>
+            <h3>Interactive loan payment simulator</h3>
+            <div class="jc-sub">Pick one loan, apply a monthly payment or lump sum, watch the balance drop — repeat as many times as you like</div>
+          </div>
+        </div>
+        <div class="job-cards" style="grid-template-columns:1fr;">
+          <div class="job-card">
+            <label>Loan</label>
+            <select id="lsSimLoanSelect" onchange="selectSimLoan(this.value)"></select>
+            <div class="job-results" style="margin-top:10px;">
+              <div class="job-result-row"><span>Interest rate</span><span id="lsSimRate">0%</span></div>
+              <div class="job-result-row net"><span>Remaining balance</span><span id="lsSimBalanceDisplay">$0</span></div>
+            </div>
+            <label style="margin-top:14px;">Monthly payment</label>
+            <input type="text" inputmode="decimal" id="lsSimMonthlyInput" placeholder="0">
+            <button class="apply-btn" onclick="applySimMonthly()">→ Apply one month's payment</button>
+            <label style="margin-top:14px;">Lump sum payment</label>
+            <input type="text" inputmode="decimal" id="lsSimLumpInput" placeholder="0">
+            <button class="apply-btn" onclick="applySimLump()">→ Apply lump sum now</button>
+            <button class="add-btn" style="margin-top:10px;" onclick="resetSimLoan()">↺ Reset to current balance</button>
+            <div class="table-scroll" style="margin-top:16px;">
+              <table class="debt-table">
+                <thead><tr><th>Step</th><th>Action</th><th>Payment</th><th>Interest</th><th>Balance after</th></tr></thead>
+                <tbody id="lsSimLedger"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr;">
         <div class="stat-card">
           <div class="label">Subsidized balance</div>
@@ -1459,12 +1491,107 @@ function renderLoanCheckboxes(hisLoans){
   }).join('');
 }
 
+// ---------- INTERACTIVE PER-LOAN PAYMENT SIMULATOR ----------
+let lsSimLoanId = null;
+let lsSimBalance = 0;
+let lsSimLedgerRows = [];
+let lsSimStep = 0;
+
+function getHisLoans(){
+  const y = state.years[2026];
+  return (y.debts||[]).filter(d=>d.owner==='you');
+}
+function getSimLoan(){
+  return getHisLoans().find(d=>d.id===lsSimLoanId);
+}
+function initSimLoan(){
+  const loan = getSimLoan();
+  if(!loan) return;
+  lsSimBalance = loan.amount||0;
+  lsSimLedgerRows = [];
+  lsSimStep = 0;
+  updateSimDisplay(loan);
+  renderSimLedger();
+}
+function populateSimLoanSelect(hisLoans){
+  const sel = document.getElementById('lsSimLoanSelect');
+  if(!sel) return;
+  if(hisLoans.length===0){ sel.innerHTML = '<option>No loans</option>'; return; }
+  const needsInit = !lsSimLoanId || !hisLoans.find(d=>d.id===lsSimLoanId);
+  sel.innerHTML = hisLoans.map(d=>
+    `<option value="${d.id}" ${d.id===lsSimLoanId?'selected':''}>${escapeHtml(d.name)||'Untitled'} (${escapeHtml(d.type)})</option>`
+  ).join('');
+  if(needsInit){
+    lsSimLoanId = hisLoans[0].id;
+    sel.value = lsSimLoanId;
+    initSimLoan();
+  } else {
+    updateSimDisplay(getSimLoan());
+  }
+}
+function selectSimLoan(id){
+  lsSimLoanId = id;
+  initSimLoan();
+}
+function updateSimDisplay(loan){
+  if(!loan) return;
+  document.getElementById('lsSimRate').textContent = (loan.rate||0).toFixed(2)+'%';
+  document.getElementById('lsSimBalanceDisplay').textContent = fmt(lsSimBalance);
+}
+function applySimMonthly(){
+  const loan = getSimLoan();
+  if(!loan || lsSimBalance<=0) return;
+  const payment = numVal(document.getElementById('lsSimMonthlyInput').value);
+  const interest = lsSimBalance*(loan.rate||0)/100/12;
+  lsSimBalance += interest;
+  const applied = Math.min(payment, lsSimBalance);
+  lsSimBalance -= applied;
+  lsSimStep++;
+  lsSimLedgerRows.push({step:lsSimStep, action:'Monthly payment', payment:applied, interest, balance:lsSimBalance});
+  updateSimDisplay(loan);
+  renderSimLedger();
+}
+function applySimLump(){
+  const loan = getSimLoan();
+  if(!loan || lsSimBalance<=0) return;
+  const lumpInput = document.getElementById('lsSimLumpInput');
+  const lump = numVal(lumpInput.value);
+  const applied = Math.min(lump, lsSimBalance);
+  lsSimBalance -= applied;
+  lsSimStep++;
+  lsSimLedgerRows.push({step:lsSimStep, action:'Lump sum', payment:applied, interest:0, balance:lsSimBalance});
+  updateSimDisplay(loan);
+  renderSimLedger();
+  lumpInput.value = '';
+}
+function resetSimLoan(){
+  initSimLoan();
+}
+function renderSimLedger(){
+  const el = document.getElementById('lsSimLedger');
+  if(!el) return;
+  if(lsSimLedgerRows.length===0){
+    el.innerHTML = '<tr><td colspan="5"><div class="empty-hint">No payments applied yet.</div></td></tr>';
+    return;
+  }
+  el.innerHTML = lsSimLedgerRows.map(r=>`
+    <tr>
+      <td>${r.step}</td>
+      <td>${r.action}</td>
+      <td>${fmt(r.payment)}</td>
+      <td>${fmt(r.interest)}</td>
+      <td>${fmt(r.balance)}</td>
+    </tr>
+  `).join('');
+}
+
 function renderLoanStrategy(){
   const y = state.years[2026];
   if(!y) return;
   document.getElementById('lsWhoName').textContent = state.names.you;
 
   const hisLoans = (y.debts||[]).filter(d=>d.owner==='you');
+  populateSimLoanSelect(hisLoans);
   const subLoans = hisLoans.filter(d=>d.type==='Federal Subsidized');
   const otherLoans = hisLoans.filter(d=>d.type!=='Federal Subsidized');
 
