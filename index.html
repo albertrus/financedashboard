@@ -1600,16 +1600,41 @@ function removeSimLoanFromSimulation(){
 }
 function undoLastSimStep(){
   if(lsSimLedgerRows.length===0) return;
-  lsSimLedgerRows.pop();
-  lsSimStep = lsSimLedgerRows.length;
-  if(lsSimLedgerRows.length===0){
-    getHisLoans().forEach(d=>{ lsSimBalances[d.id] = d.amount||0; });
-  } else {
-    lsSimBalances = {...lsSimLedgerRows[lsSimLedgerRows.length-1].balances};
-  }
+  removeSimStep(lsSimLedgerRows.length-1);
+}
+// Removes one specific step (by its position in the ledger) and replays every
+// remaining step from scratch, so balances stay correct and a fully-undone
+// loan reappears in the "loans I owe" dropdown automatically.
+function removeSimStep(rowIndex){
+  const stepsToReplay = lsSimLedgerRows.slice();
+  stepsToReplay.splice(rowIndex, 1);
   const hisLoans = getHisLoans();
+
+  hisLoans.forEach(d=>{ lsSimBalances[d.id] = d.amount||0; });
+  lsSimLedgerRows = [];
+  lsSimStep = 0;
+
+  stepsToReplay.forEach(r=>{
+    const loan = hisLoans.find(d=>d.id===r.loanId);
+    if(!loan) return;
+    let interest = 0;
+    if(r.action==='Monthly payment'){
+      const isSubsidized = loan.type==='Federal Subsidized';
+      interest = (!isSubsidized && lsSimBalances[loan.id]>0) ? lsSimBalances[loan.id]*(loan.rate||0)/100/12 : 0;
+      lsSimBalances[loan.id] += interest;
+    }
+    const applied = Math.min(r.payment, lsSimBalances[loan.id]);
+    lsSimBalances[loan.id] -= applied;
+    lsSimStep++;
+    const total = hisLoans.filter(d=>!lsSimExcluded.has(d.id)).reduce((s,d)=>s+(lsSimBalances[d.id]||0),0);
+    lsSimLedgerRows.push({
+      step:lsSimStep, date:r.date, loanId:loan.id, loanName:loan.name||'Untitled',
+      action:r.action, payment:applied, interest, balances:{...lsSimBalances}, total
+    });
+  });
+
   updateSimDisplay(hisLoans.find(d=>d.id===lsSimLoanId));
-  renderSimLedger(hisLoans);
+  populateSimLoanSelect(hisLoans);
 }
 function renderSimLedger(hisLoans){
   const head = document.getElementById('lsSimHead');
@@ -1618,13 +1643,13 @@ function renderSimLedger(hisLoans){
   if(!head || !body || !foot) return;
 
   head.innerHTML = `<tr>
-    <th>Step</th><th>Date</th><th>Loan paid</th><th>Payment</th><th>Interest</th><th>Loan balance</th><th>Total due (all loans)</th>
+    <th>Step</th><th>Date</th><th>Loan paid</th><th>Payment</th><th>Interest</th><th>Loan balance</th><th>Total due (all loans)</th><th></th>
   </tr>`;
 
   if(lsSimLedgerRows.length===0){
-    body.innerHTML = `<tr><td colspan="7"><div class="empty-hint">No payments applied yet.</div></td></tr>`;
+    body.innerHTML = `<tr><td colspan="8"><div class="empty-hint">No payments applied yet.</div></td></tr>`;
   } else {
-    body.innerHTML = lsSimLedgerRows.map(r=>`
+    body.innerHTML = lsSimLedgerRows.map((r,i)=>`
       <tr>
         <td>${r.step}</td>
         <td>${formatSimDate(r.date)}</td>
@@ -1633,13 +1658,14 @@ function renderSimLedger(hisLoans){
         <td>${fmt(r.interest)}</td>
         <td>${fmt(r.balances[r.loanId]||0)}</td>
         <td>${fmt(r.total)}</td>
+        <td><button class="remove-btn" title="Undo this step" onclick="removeSimStep(${i})">×</button></td>
       </tr>
     `).join('');
   }
 
   const currentTotal = hisLoans.filter(d=>!lsSimExcluded.has(d.id)).reduce((s,d)=>s+(lsSimBalances[d.id]||0),0);
   foot.innerHTML = `<tr style="font-weight:700;border-top:1.5px solid var(--ink);">
-    <td colspan="6" style="padding:8px;">Total amount due (all loans)</td>
+    <td colspan="7" style="padding:8px;">Total amount due (all loans)</td>
     <td style="padding:8px;">${fmt(currentTotal)}</td>
   </tr>`;
 }
