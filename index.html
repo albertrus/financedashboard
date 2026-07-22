@@ -113,6 +113,18 @@
   .year-btn[data-year="loanstrategy"].active{background:#2E3A87;box-shadow:inset 3px 0 0 #1e2760;}
   #loanStrategyView .ov-savings-head h3{color:#2E3A87;}
   #loanStrategyView .job-calc-header h3{color:#2E3A87;}
+  .ls-news-item{
+    padding:11px 0;border-bottom:1px solid var(--line);
+  }
+  .ls-news-item:last-child{border-bottom:none;}
+  .ls-news-item a{
+    color:var(--ink);text-decoration:none;font-weight:600;font-size:13.5px;line-height:1.4;
+  }
+  .ls-news-item a:hover{color:#2E3A87;text-decoration:underline;}
+  .ls-news-meta{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-soft);
+    margin-top:4px;text-transform:uppercase;letter-spacing:0.03em;
+  }
 
   /* Main content area */
   .main-content{flex:1;min-width:0;}
@@ -1104,10 +1116,13 @@
       </div>
 
       <div class="ov-savings-section">
-        <div class="ov-savings-head"><h3>Student loan news</h3></div>
+        <div class="ov-savings-head" style="display:flex;justify-content:space-between;align-items:center;">
+          <h3>Student loan news</h3>
+          <button class="add-btn" style="width:auto;padding:6px 12px;font-size:10px;" onclick="loadLoanNews()">↻ Refresh</button>
+        </div>
         <div style="padding:18px 20px;">
-          <p style="font-size:13px;color:var(--ink-soft);margin:0 0 14px;">Live headlines aren't embedded here — Google News blocks that. Use this to jump straight to current coverage instead.</p>
-          <a href="https://news.google.com/search?q=student%20loans" target="_blank" rel="noopener" class="add-btn" style="display:inline-block;width:auto;text-decoration:none;color:var(--ink);">↗ Open Google News: "student loans"</a>
+          <div id="lsNewsStatus" class="empty-hint">Loading headlines…</div>
+          <div id="lsNewsList"></div>
         </div>
       </div>
     </div>
@@ -1322,6 +1337,50 @@ function showLoanStrategy(){
   document.querySelectorAll('.main-content:not(#loanStrategyView)').forEach(el=>el.style.display='none');
   document.getElementById('loanStrategyView').style.display='';
   renderLoanStrategy();
+  if(!lsNewsLoadedOnce){ lsNewsLoadedOnce = true; loadLoanNews(); }
+}
+
+let lsNewsLoadedOnce = false;
+async function loadLoanNews(){
+  const statusEl = document.getElementById('lsNewsStatus');
+  const listEl = document.getElementById('lsNewsList');
+  statusEl.style.display = '';
+  statusEl.textContent = 'Loading headlines…';
+  listEl.innerHTML = '';
+  const feedUrl = 'https://news.google.com/rss/search?q=student%20loans&hl=en-US&gl=US&ceid=US:en';
+  const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(feedUrl);
+  try{
+    const res = await fetch(proxyUrl);
+    if(!res.ok) throw new Error('Fetch failed: '+res.status);
+    const text = await res.text();
+    const doc = new DOMParser().parseFromString(text, 'text/xml');
+    if(doc.querySelector('parsererror')) throw new Error('Bad XML');
+    const items = Array.from(doc.querySelectorAll('item')).slice(0,10);
+    if(items.length===0){ statusEl.textContent = 'No headlines found right now.'; return; }
+    statusEl.style.display = 'none';
+    listEl.innerHTML = items.map(it=>{
+      const title = it.querySelector('title')?.textContent || 'Untitled';
+      let link = it.querySelector('link')?.textContent || '';
+      if(!/^https?:\/\//i.test(link)) link = 'https://news.google.com/search?q=student%20loans';
+      const source = it.querySelector('source')?.textContent || '';
+      const pubDate = it.querySelector('pubDate')?.textContent || '';
+      let dateStr = '';
+      if(pubDate){
+        const d = new Date(pubDate);
+        if(!isNaN(d.getTime())) dateStr = d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+      }
+      return `
+        <div class="ls-news-item">
+          <a href="${escapeHtml(link)}" target="_blank" rel="noopener">${escapeHtml(title)}</a>
+          <div class="ls-news-meta">${escapeHtml(source)}${source&&dateStr?' · ':''}${escapeHtml(dateStr)}</div>
+        </div>
+      `;
+    }).join('');
+  }catch(e){
+    console.error('News load error', e);
+    statusEl.style.display = '';
+    statusEl.innerHTML = 'Could not load live headlines right now (the free proxy may be rate-limited). Try Refresh, or search directly: <a href="https://news.google.com/search?q=student%20loans" target="_blank" rel="noopener" style="color:#2E3A87;">Google News →</a>';
+  }
 }
 
 function simulateLoanAvalanche(loans, monthlyPayment, maxMonths){
