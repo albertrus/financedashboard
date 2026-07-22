@@ -1505,8 +1505,15 @@ function populateSimLoanSelect(hisLoans){
   if(hisLoans.length===0){ sel.innerHTML = '<option>No loans</option>'; return; }
   if(!lsSimInitialized){ initSimAll(hisLoans); }
   ensureSimBalances(hisLoans);
-  if(!lsSimLoanId || !hisLoans.find(d=>d.id===lsSimLoanId)) lsSimLoanId = hisLoans[0].id;
-  sel.innerHTML = hisLoans.map(d=>
+
+  const unpaidLoans = hisLoans.filter(d=>(lsSimBalances[d.id]||0) > 0.01);
+  if(unpaidLoans.length===0){
+    sel.innerHTML = '<option>All loans paid off! 🎉</option>';
+    renderSimLedger(hisLoans);
+    return;
+  }
+  if(!lsSimLoanId || !unpaidLoans.find(d=>d.id===lsSimLoanId)) lsSimLoanId = unpaidLoans[0].id;
+  sel.innerHTML = unpaidLoans.map(d=>
     `<option value="${d.id}" ${d.id===lsSimLoanId?'selected':''}>${escapeHtml(d.name)||'Untitled'} (${escapeHtml(d.type)}) — ${fmt(lsSimBalances[d.id])}</option>`
   ).join('');
   sel.value = lsSimLoanId;
@@ -1547,9 +1554,8 @@ function applySimMonthly(){
     action:'Monthly payment', payment:applied, interest:interestOnPaidLoan,
     balances:{...lsSimBalances}, total
   });
-  updateSimDisplay(loan);
-  renderSimLedger(hisLoans);
   advanceSimDateByMonth();
+  populateSimLoanSelect(hisLoans);
 }
 function applySimLump(){
   const hisLoans = getHisLoans();
@@ -1568,9 +1574,8 @@ function applySimLump(){
     action:'Lump sum', payment:applied, interest:0,
     balances:{...lsSimBalances}, total
   });
-  updateSimDisplay(loan);
-  renderSimLedger(hisLoans);
   lumpInput.value = '';
+  populateSimLoanSelect(hisLoans);
 }
 function resetSimLoan(){
   const hisLoans = getHisLoans();
