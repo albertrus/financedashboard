@@ -125,6 +125,16 @@
     font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-soft);
     margin-top:4px;text-transform:uppercase;letter-spacing:0.03em;
   }
+  .ls-loan-check-row{
+    display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);
+    cursor:pointer;
+  }
+  .ls-loan-check-row:last-child{border-bottom:none;}
+  .ls-loan-check-row input[type=checkbox]{flex-shrink:0;width:16px;height:16px;cursor:pointer;accent-color:#2E3A87;}
+  .ls-loan-check-name{flex:1;font-size:13px;font-family:'Inter',sans-serif;}
+  .ls-loan-check-meta{
+    font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-soft);flex-shrink:0;
+  }
 
   /* Main content area */
   .main-content{flex:1;min-width:0;}
@@ -1062,6 +1072,24 @@
       </table>
       </div>
 
+      <div class="job-calc-section">
+        <div class="job-calc-header">
+          <div>
+            <h3>Custom payoff calculator</h3>
+            <div class="jc-sub">Pick any loans and any monthly amount to see how long payoff takes</div>
+          </div>
+        </div>
+        <div class="job-cards" style="grid-template-columns:1fr;">
+          <div class="job-card">
+            <label>Select loans to include</label>
+            <div id="lsLoanCheckboxes"></div>
+            <label style="margin-top:14px;">Monthly payment toward selected loans</label>
+            <input type="text" inputmode="decimal" id="lsCustomPaymentInput" placeholder="0" oninput="renderLoanStrategy()">
+            <div class="job-results" id="lsCustomResults"></div>
+          </div>
+        </div>
+      </div>
+
       <div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr;">
         <div class="stat-card">
           <div class="label">Subsidized balance</div>
@@ -1410,6 +1438,27 @@ function simulateLoanAvalanche(loans, monthlyPayment, maxMonths){
   return { months, totalInterest, payoffAchieved: bal.every(l=>l.balance<=0.01) };
 }
 
+let lsSelectedLoanIds = new Set();
+let lsSelectionInitialized = false;
+
+function toggleLoanSelection(id, checked){
+  if(checked) lsSelectedLoanIds.add(id); else lsSelectedLoanIds.delete(id);
+  renderLoanStrategy();
+}
+
+function renderLoanCheckboxes(hisLoans){
+  const el = document.getElementById('lsLoanCheckboxes');
+  if(hisLoans.length===0){ el.innerHTML = '<div class="empty-hint">No loans to select.</div>'; return; }
+  el.innerHTML = hisLoans.map(d=>{
+    const checked = lsSelectedLoanIds.has(d.id) ? 'checked' : '';
+    return `<label class="ls-loan-check-row">
+      <input type="checkbox" ${checked} onchange="toggleLoanSelection('${d.id}', this.checked)">
+      <span class="ls-loan-check-name">${escapeHtml(d.name)||'Untitled'} <span style="color:var(--ink-soft);">(${escapeHtml(d.type)})</span></span>
+      <span class="ls-loan-check-meta">${fmt(d.amount||0)} · ${(d.rate||0).toFixed(2)}%</span>
+    </label>`;
+  }).join('');
+}
+
 function renderLoanStrategy(){
   const y = state.years[2026];
   if(!y) return;
@@ -1418,6 +1467,41 @@ function renderLoanStrategy(){
   const hisLoans = (y.debts||[]).filter(d=>d.owner==='you');
   const subLoans = hisLoans.filter(d=>d.type==='Federal Subsidized');
   const otherLoans = hisLoans.filter(d=>d.type!=='Federal Subsidized');
+
+  if(!lsSelectionInitialized){
+    hisLoans.forEach(d=>{ if(d.type!=='Federal Subsidized') lsSelectedLoanIds.add(d.id); });
+    lsSelectionInitialized = true;
+  }
+  renderLoanCheckboxes(hisLoans);
+
+  const customPaymentInput = document.getElementById('lsCustomPaymentInput');
+  const customPayment = numVal(customPaymentInput.value);
+  const selectedLoans = hisLoans.filter(d=>lsSelectedLoanIds.has(d.id));
+  const customSim = simulateLoanAvalanche(selectedLoans, customPayment, 600);
+  const customResultsEl = document.getElementById('lsCustomResults');
+  const selectedBalance = selectedLoans.reduce((s,d)=>s+(d.amount||0),0);
+  if(selectedLoans.length===0){
+    customResultsEl.innerHTML = '<div class="job-result-row"><span>Select at least one loan above.</span><span></span></div>';
+  } else if(customSim.noPayment){
+    customResultsEl.innerHTML = `
+      <div class="job-result-row"><span>Selected balance</span><span>${fmt(selectedBalance)}</span></div>
+      <div class="job-result-row"><span>Enter a monthly payment to see payoff time.</span><span></span></div>
+    `;
+  } else if(!customSim.payoffAchieved){
+    const selInterest = selectedLoans.reduce((s,d)=>s+((d.amount||0)*(d.rate||0)/100/12),0);
+    customResultsEl.innerHTML = `
+      <div class="job-result-row"><span>Selected balance</span><span>${fmt(selectedBalance)}</span></div>
+      <div class="job-result-row"><span>Monthly interest on selected</span><span>${fmt(selInterest)}</span></div>
+      <div class="job-result-row net"><span>This payment barely covers interest</span><span style="color:var(--bad);">Increase it</span></div>
+    `;
+  } else {
+    const years = Math.floor(customSim.months/12), rem = customSim.months%12;
+    customResultsEl.innerHTML = `
+      <div class="job-result-row"><span>Selected balance</span><span>${fmt(selectedBalance)}</span></div>
+      <div class="job-result-row"><span>Payoff time</span><span>${years}y ${rem}mo (${customSim.months} months)</span></div>
+      <div class="job-result-row net"><span>Total interest paid</span><span>${fmt(customSim.totalInterest)}</span></div>
+    `;
+  }
 
   const tbody = document.getElementById('lsLoanTable');
   if(hisLoans.length===0){
