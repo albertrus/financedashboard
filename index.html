@@ -1100,6 +1100,7 @@
             <input type="text" inputmode="decimal" id="lsSimLumpInput" placeholder="0">
             <button class="apply-btn" onclick="applySimLump()">→ Apply lump sum now</button>
             <button class="add-btn" style="margin-top:10px;" onclick="resetSimLoan()">↺ Reset entire simulation</button>
+            <button class="add-btn" style="margin-top:8px;color:var(--bad);border-color:var(--bad);" onclick="removeSimLoan()">🗑 Remove selected loan permanently</button>
             <div class="table-scroll" style="margin-top:16px;">
               <table class="debt-table" id="lsSimTable">
                 <thead id="lsSimHead"></thead>
@@ -1584,6 +1585,25 @@ function resetSimLoan(){
   initSimAll(hisLoans);
   updateSimDisplay(hisLoans.find(d=>d.id===lsSimLoanId));
   renderSimLedger(hisLoans);
+}
+function removeSimLoan(){
+  if(!lsSimLoanId) return;
+  const y = state.years[2026];
+  const loan = (y.debts||[]).find(d=>d.id===lsSimLoanId);
+  if(!loan) return;
+  const ok = confirm(`Permanently remove "${loan.name||'this loan'}" from ${state.names.you}'s School Loans (2026)? This cannot be undone.`);
+  if(!ok) return;
+
+  y.debts = y.debts.filter(d=>d.id!==lsSimLoanId);
+  // this tool always analyzes 2026 directly, so cascade the removal forward manually
+  const idx = YEARS.indexOf(2026);
+  for(let i=idx+1;i<YEARS.length;i++){
+    state.years[YEARS[i]].debts = JSON.parse(JSON.stringify(y.debts));
+  }
+  delete lsSimBalances[lsSimLoanId];
+  lsSimLoanId = null;
+  scheduleSave();
+  renderLoanStrategy();
 }
 function renderSimLedger(hisLoans){
   const head = document.getElementById('lsSimHead');
