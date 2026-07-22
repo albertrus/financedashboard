@@ -1530,15 +1530,9 @@ function applySimMonthly(){
   const payment = numVal(document.getElementById('lsSimMonthlyInput').value);
   const date = document.getElementById('lsSimDateInput').value;
 
-  // one month passes for every loan: interest accrues on all of them
-  let interestOnPaidLoan = 0;
-  hisLoans.forEach(d=>{
-    if(lsSimBalances[d.id]>0){
-      const interest = lsSimBalances[d.id]*(d.rate||0)/100/12;
-      lsSimBalances[d.id] += interest;
-      if(d.id===loan.id) interestOnPaidLoan = interest;
-    }
-  });
+  // only the loan being paid accrues a month of interest — other loans are untouched
+  const interestOnPaidLoan = lsSimBalances[loan.id]>0 ? lsSimBalances[loan.id]*(loan.rate||0)/100/12 : 0;
+  lsSimBalances[loan.id] += interestOnPaidLoan;
   const applied = Math.min(payment, lsSimBalances[loan.id]);
   lsSimBalances[loan.id] -= applied;
 
