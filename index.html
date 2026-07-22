@@ -1075,35 +1075,17 @@
       <div class="job-calc-section">
         <div class="job-calc-header">
           <div>
-            <h3>Custom payoff calculator</h3>
-            <div class="jc-sub">Pick any loans and any monthly amount to see how long payoff takes</div>
-          </div>
-        </div>
-        <div class="job-cards" style="grid-template-columns:1fr;">
-          <div class="job-card">
-            <label>Select loans to include</label>
-            <div id="lsLoanCheckboxes"></div>
-            <label style="margin-top:14px;">Monthly payment toward selected loans</label>
-            <input type="text" inputmode="decimal" id="lsCustomPaymentInput" placeholder="0" oninput="renderLoanStrategy()">
-            <div class="job-results" id="lsCustomResults"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="job-calc-section">
-        <div class="job-calc-header">
-          <div>
             <h3>Interactive loan payment simulator</h3>
             <div class="jc-sub">Pick one loan, apply a monthly payment or lump sum, watch the balance drop — repeat as many times as you like</div>
           </div>
         </div>
         <div class="job-cards" style="grid-template-columns:1fr;">
           <div class="job-card">
-            <label>Loan</label>
+            <label>Pay toward loan</label>
             <select id="lsSimLoanSelect" onchange="selectSimLoan(this.value)"></select>
             <div class="job-results" style="margin-top:10px;">
               <div class="job-result-row"><span>Interest rate</span><span id="lsSimRate">0%</span></div>
-              <div class="job-result-row net"><span>Remaining balance</span><span id="lsSimBalanceDisplay">$0</span></div>
+              <div class="job-result-row net"><span>Its remaining balance</span><span id="lsSimBalanceDisplay">$0</span></div>
             </div>
             <label style="margin-top:14px;">Payment date</label>
             <input type="date" id="lsSimDateInput">
@@ -1113,17 +1095,12 @@
             <label style="margin-top:14px;">Lump sum payment</label>
             <input type="text" inputmode="decimal" id="lsSimLumpInput" placeholder="0">
             <button class="apply-btn" onclick="applySimLump()">→ Apply lump sum now</button>
-            <button class="add-btn" style="margin-top:10px;" onclick="resetSimLoan()">↺ Reset to current balance</button>
+            <button class="add-btn" style="margin-top:10px;" onclick="resetSimLoan()">↺ Reset entire simulation</button>
             <div class="table-scroll" style="margin-top:16px;">
-              <table class="debt-table">
-                <thead><tr><th>Step</th><th>Date</th><th>Action</th><th>Payment</th><th>Interest</th><th>Balance after</th></tr></thead>
+              <table class="debt-table" id="lsSimTable">
+                <thead id="lsSimHead"></thead>
                 <tbody id="lsSimLedger"></tbody>
-                <tfoot>
-                  <tr style="font-weight:700;border-top:1.5px solid var(--ink);">
-                    <td colspan="5" style="padding:8px;">Total amount due</td>
-                    <td id="lsSimTotalDue" style="padding:8px;text-align:right;">$0</td>
-                  </tr>
-                </tfoot>
+                <tfoot id="lsSimFoot"></tfoot>
               </table>
             </div>
           </div>
@@ -1478,50 +1455,32 @@ function simulateLoanAvalanche(loans, monthlyPayment, maxMonths){
   return { months, totalInterest, payoffAchieved: bal.every(l=>l.balance<=0.01) };
 }
 
-let lsSelectedLoanIds = new Set();
-let lsSelectionInitialized = false;
-
-function toggleLoanSelection(id, checked){
-  if(checked) lsSelectedLoanIds.add(id); else lsSelectedLoanIds.delete(id);
-  renderLoanStrategy();
-}
-
-function renderLoanCheckboxes(hisLoans){
-  const el = document.getElementById('lsLoanCheckboxes');
-  if(hisLoans.length===0){ el.innerHTML = '<div class="empty-hint">No loans to select.</div>'; return; }
-  el.innerHTML = hisLoans.map(d=>{
-    const checked = lsSelectedLoanIds.has(d.id) ? 'checked' : '';
-    return `<label class="ls-loan-check-row">
-      <input type="checkbox" ${checked} onchange="toggleLoanSelection('${d.id}', this.checked)">
-      <span class="ls-loan-check-name">${escapeHtml(d.name)||'Untitled'} <span style="color:var(--ink-soft);">(${escapeHtml(d.type)})</span></span>
-      <span class="ls-loan-check-meta">${fmt(d.amount||0)} · ${(d.rate||0).toFixed(2)}%</span>
-    </label>`;
-  }).join('');
-}
-
-// ---------- INTERACTIVE PER-LOAN PAYMENT SIMULATOR ----------
+// ---------- INTERACTIVE MULTI-LOAN PAYMENT SIMULATOR ----------
+// Tracks every loan's balance together in one running ledger. Switching which
+// loan you're paying does NOT reset history — only "Reset entire simulation" does.
 let lsSimLoanId = null;
-let lsSimBalance = 0;
-let lsSimLedgerRows = [];
+let lsSimBalances = {};       // loanId -> current simulated balance
+let lsSimLedgerRows = [];     // [{step, date, loanId, loanName, action, payment, interest, balances:{...}, total}]
 let lsSimStep = 0;
+let lsSimInitialized = false;
 
 function getHisLoans(){
   const y = state.years[2026];
   return (y.debts||[]).filter(d=>d.owner==='you');
 }
-function getSimLoan(){
-  return getHisLoans().find(d=>d.id===lsSimLoanId);
+function ensureSimBalances(hisLoans){
+  hisLoans.forEach(d=>{
+    if(!(d.id in lsSimBalances)) lsSimBalances[d.id] = d.amount||0;
+  });
 }
-function initSimLoan(){
-  const loan = getSimLoan();
-  if(!loan) return;
-  lsSimBalance = loan.amount||0;
+function initSimAll(hisLoans){
+  lsSimBalances = {};
+  hisLoans.forEach(d=>{ lsSimBalances[d.id] = d.amount||0; });
   lsSimLedgerRows = [];
   lsSimStep = 0;
   const dateInput = document.getElementById('lsSimDateInput');
-  if(dateInput && !dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
-  updateSimDisplay(loan);
-  renderSimLedger();
+  if(dateInput) dateInput.value = new Date().toISOString().slice(0,10);
+  lsSimInitialized = true;
 }
 function advanceSimDateByMonth(){
   const dateInput = document.getElementById('lsSimDateInput');
@@ -1540,78 +1499,116 @@ function populateSimLoanSelect(hisLoans){
   const sel = document.getElementById('lsSimLoanSelect');
   if(!sel) return;
   if(hisLoans.length===0){ sel.innerHTML = '<option>No loans</option>'; return; }
-  const needsInit = !lsSimLoanId || !hisLoans.find(d=>d.id===lsSimLoanId);
+  if(!lsSimInitialized){ initSimAll(hisLoans); }
+  ensureSimBalances(hisLoans);
+  if(!lsSimLoanId || !hisLoans.find(d=>d.id===lsSimLoanId)) lsSimLoanId = hisLoans[0].id;
   sel.innerHTML = hisLoans.map(d=>
-    `<option value="${d.id}" ${d.id===lsSimLoanId?'selected':''}>${escapeHtml(d.name)||'Untitled'} (${escapeHtml(d.type)}) — ${fmt(d.amount||0)}</option>`
+    `<option value="${d.id}" ${d.id===lsSimLoanId?'selected':''}>${escapeHtml(d.name)||'Untitled'} (${escapeHtml(d.type)}) — ${fmt(lsSimBalances[d.id])}</option>`
   ).join('');
-  if(needsInit){
-    lsSimLoanId = hisLoans[0].id;
-    sel.value = lsSimLoanId;
-    initSimLoan();
-  } else {
-    updateSimDisplay(getSimLoan());
-  }
+  sel.value = lsSimLoanId;
+  updateSimDisplay(hisLoans.find(d=>d.id===lsSimLoanId));
+  renderSimLedger(hisLoans);
 }
 function selectSimLoan(id){
   lsSimLoanId = id;
-  initSimLoan();
+  const hisLoans = getHisLoans();
+  updateSimDisplay(hisLoans.find(d=>d.id===lsSimLoanId));
 }
 function updateSimDisplay(loan){
   if(!loan) return;
   document.getElementById('lsSimRate').textContent = (loan.rate||0).toFixed(2)+'%';
-  document.getElementById('lsSimBalanceDisplay').textContent = fmt(lsSimBalance);
+  document.getElementById('lsSimBalanceDisplay').textContent = fmt(lsSimBalances[loan.id]||0);
 }
 function applySimMonthly(){
-  const loan = getSimLoan();
-  if(!loan || lsSimBalance<=0) return;
+  const hisLoans = getHisLoans();
+  const loan = hisLoans.find(d=>d.id===lsSimLoanId);
+  if(!loan) return;
   const payment = numVal(document.getElementById('lsSimMonthlyInput').value);
   const date = document.getElementById('lsSimDateInput').value;
-  const interest = lsSimBalance*(loan.rate||0)/100/12;
-  lsSimBalance += interest;
-  const applied = Math.min(payment, lsSimBalance);
-  lsSimBalance -= applied;
+
+  // one month passes for every loan: interest accrues on all of them
+  let interestOnPaidLoan = 0;
+  hisLoans.forEach(d=>{
+    if(lsSimBalances[d.id]>0){
+      const interest = lsSimBalances[d.id]*(d.rate||0)/100/12;
+      lsSimBalances[d.id] += interest;
+      if(d.id===loan.id) interestOnPaidLoan = interest;
+    }
+  });
+  const applied = Math.min(payment, lsSimBalances[loan.id]);
+  lsSimBalances[loan.id] -= applied;
+
   lsSimStep++;
-  lsSimLedgerRows.push({step:lsSimStep, date, action:'Monthly payment', payment:applied, interest, balance:lsSimBalance});
+  const total = hisLoans.reduce((s,d)=>s+(lsSimBalances[d.id]||0),0);
+  lsSimLedgerRows.push({
+    step:lsSimStep, date, loanId:loan.id, loanName:loan.name||'Untitled',
+    action:'Monthly payment', payment:applied, interest:interestOnPaidLoan,
+    balances:{...lsSimBalances}, total
+  });
   updateSimDisplay(loan);
-  renderSimLedger();
+  renderSimLedger(hisLoans);
   advanceSimDateByMonth();
 }
 function applySimLump(){
-  const loan = getSimLoan();
-  if(!loan || lsSimBalance<=0) return;
+  const hisLoans = getHisLoans();
+  const loan = hisLoans.find(d=>d.id===lsSimLoanId);
+  if(!loan) return;
   const lumpInput = document.getElementById('lsSimLumpInput');
   const lump = numVal(lumpInput.value);
   const date = document.getElementById('lsSimDateInput').value;
-  const applied = Math.min(lump, lsSimBalance);
-  lsSimBalance -= applied;
+  const applied = Math.min(lump, lsSimBalances[loan.id]);
+  lsSimBalances[loan.id] -= applied;
+
   lsSimStep++;
-  lsSimLedgerRows.push({step:lsSimStep, date, action:'Lump sum', payment:applied, interest:0, balance:lsSimBalance});
+  const total = hisLoans.reduce((s,d)=>s+(lsSimBalances[d.id]||0),0);
+  lsSimLedgerRows.push({
+    step:lsSimStep, date, loanId:loan.id, loanName:loan.name||'Untitled',
+    action:'Lump sum', payment:applied, interest:0,
+    balances:{...lsSimBalances}, total
+  });
   updateSimDisplay(loan);
-  renderSimLedger();
+  renderSimLedger(hisLoans);
   lumpInput.value = '';
 }
 function resetSimLoan(){
-  initSimLoan();
+  const hisLoans = getHisLoans();
+  initSimAll(hisLoans);
+  updateSimDisplay(hisLoans.find(d=>d.id===lsSimLoanId));
+  renderSimLedger(hisLoans);
 }
-function renderSimLedger(){
-  const el = document.getElementById('lsSimLedger');
-  if(!el) return;
-  const totalEl = document.getElementById('lsSimTotalDue');
-  if(totalEl) totalEl.textContent = fmt(lsSimBalance);
+function renderSimLedger(hisLoans){
+  const head = document.getElementById('lsSimHead');
+  const body = document.getElementById('lsSimLedger');
+  const foot = document.getElementById('lsSimFoot');
+  if(!head || !body || !foot) return;
+
+  head.innerHTML = `<tr>
+    <th>Step</th><th>Date</th><th>Paid toward</th><th>Payment</th><th>Interest</th>
+    ${hisLoans.map(d=>`<th>${escapeHtml(d.name)||'Untitled'}</th>`).join('')}
+    <th>Total due</th>
+  </tr>`;
+
   if(lsSimLedgerRows.length===0){
-    el.innerHTML = '<tr><td colspan="6"><div class="empty-hint">No payments applied yet.</div></td></tr>';
-    return;
+    body.innerHTML = `<tr><td colspan="${5+hisLoans.length+1}"><div class="empty-hint">No payments applied yet.</div></td></tr>`;
+  } else {
+    body.innerHTML = lsSimLedgerRows.map(r=>`
+      <tr>
+        <td>${r.step}</td>
+        <td>${formatSimDate(r.date)}</td>
+        <td>${escapeHtml(r.loanName)}</td>
+        <td>${fmt(r.payment)}</td>
+        <td>${fmt(r.interest)}</td>
+        ${hisLoans.map(d=>`<td>${fmt(r.balances[d.id]||0)}</td>`).join('')}
+        <td>${fmt(r.total)}</td>
+      </tr>
+    `).join('');
   }
-  el.innerHTML = lsSimLedgerRows.map(r=>`
-    <tr>
-      <td>${r.step}</td>
-      <td>${formatSimDate(r.date)}</td>
-      <td>${r.action}</td>
-      <td>${fmt(r.payment)}</td>
-      <td>${fmt(r.interest)}</td>
-      <td>${fmt(r.balance)}</td>
-    </tr>
-  `).join('');
+
+  const currentTotal = hisLoans.reduce((s,d)=>s+(lsSimBalances[d.id]||0),0);
+  foot.innerHTML = `<tr style="font-weight:700;border-top:1.5px solid var(--ink);">
+    <td colspan="${5+hisLoans.length}" style="padding:8px;">Total amount due</td>
+    <td style="padding:8px;">${fmt(currentTotal)}</td>
+  </tr>`;
 }
 
 function renderLoanStrategy(){
@@ -1623,41 +1620,6 @@ function renderLoanStrategy(){
   populateSimLoanSelect(hisLoans);
   const subLoans = hisLoans.filter(d=>d.type==='Federal Subsidized');
   const otherLoans = hisLoans.filter(d=>d.type!=='Federal Subsidized');
-
-  if(!lsSelectionInitialized){
-    hisLoans.forEach(d=>{ if(d.type!=='Federal Subsidized') lsSelectedLoanIds.add(d.id); });
-    lsSelectionInitialized = true;
-  }
-  renderLoanCheckboxes(hisLoans);
-
-  const customPaymentInput = document.getElementById('lsCustomPaymentInput');
-  const customPayment = numVal(customPaymentInput.value);
-  const selectedLoans = hisLoans.filter(d=>lsSelectedLoanIds.has(d.id));
-  const customSim = simulateLoanAvalanche(selectedLoans, customPayment, 600);
-  const customResultsEl = document.getElementById('lsCustomResults');
-  const selectedBalance = selectedLoans.reduce((s,d)=>s+(d.amount||0),0);
-  if(selectedLoans.length===0){
-    customResultsEl.innerHTML = '<div class="job-result-row"><span>Select at least one loan above.</span><span></span></div>';
-  } else if(customSim.noPayment){
-    customResultsEl.innerHTML = `
-      <div class="job-result-row"><span>Selected balance</span><span>${fmt(selectedBalance)}</span></div>
-      <div class="job-result-row"><span>Enter a monthly payment to see payoff time.</span><span></span></div>
-    `;
-  } else if(!customSim.payoffAchieved){
-    const selInterest = selectedLoans.reduce((s,d)=>s+((d.amount||0)*(d.rate||0)/100/12),0);
-    customResultsEl.innerHTML = `
-      <div class="job-result-row"><span>Selected balance</span><span>${fmt(selectedBalance)}</span></div>
-      <div class="job-result-row"><span>Monthly interest on selected</span><span>${fmt(selInterest)}</span></div>
-      <div class="job-result-row net"><span>This payment barely covers interest</span><span style="color:var(--bad);">Increase it</span></div>
-    `;
-  } else {
-    const years = Math.floor(customSim.months/12), rem = customSim.months%12;
-    customResultsEl.innerHTML = `
-      <div class="job-result-row"><span>Selected balance</span><span>${fmt(selectedBalance)}</span></div>
-      <div class="job-result-row"><span>Payoff time</span><span>${years}y ${rem}mo (${customSim.months} months)</span></div>
-      <div class="job-result-row net"><span>Total interest paid</span><span>${fmt(customSim.totalInterest)}</span></div>
-    `;
-  }
 
   const tbody = document.getElementById('lsLoanTable');
   if(hisLoans.length===0){
