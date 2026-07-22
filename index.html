@@ -1100,7 +1100,8 @@
             <input type="text" inputmode="decimal" id="lsSimLumpInput" placeholder="0">
             <button class="apply-btn" onclick="applySimLump()">→ Apply lump sum now</button>
             <button class="add-btn" style="margin-top:10px;" onclick="resetSimLoan()">↺ Reset entire simulation</button>
-            <button class="add-btn" style="margin-top:8px;color:var(--bad);border-color:var(--bad);" onclick="removeSimLoan()">🗑 Remove selected loan permanently</button>
+            <button class="add-btn" style="margin-top:8px;" onclick="removeSimLoanFromSimulation()">✕ Remove selected loan from this simulation</button>
+            <button class="add-btn" style="margin-top:8px;" onclick="undoLastSimStep()">↩ Undo last step</button>
             <div class="table-scroll" style="margin-top:16px;">
               <table class="debt-table" id="lsSimTable">
                 <thead id="lsSimHead"></thead>
@@ -1509,9 +1510,10 @@ function populateSimLoanSelect(hisLoans){
   if(!lsSimInitialized){ initSimAll(hisLoans); }
   ensureSimBalances(hisLoans);
 
-  const unpaidLoans = hisLoans.filter(d=>(lsSimBalances[d.id]||0) > 0.01);
+  const unpaidLoans = hisLoans.filter(d=>!lsSimExcluded.has(d.id) && (lsSimBalances[d.id]||0) > 0.01);
   if(unpaidLoans.length===0){
-    sel.innerHTML = '<option>All loans paid off! 🎉</option>';
+    const allExcludedOrPaid = hisLoans.every(d=>lsSimExcluded.has(d.id) || (lsSimBalances[d.id]||0)<=0.01);
+    sel.innerHTML = allExcludedOrPaid ? '<option>No loans in this simulation</option>' : '<option>All loans paid off! 🎉</option>';
     renderSimLedger(hisLoans);
     return;
   }
@@ -1551,7 +1553,7 @@ function applySimMonthly(){
   lsSimBalances[loan.id] -= applied;
 
   lsSimStep++;
-  const total = hisLoans.reduce((s,d)=>s+(lsSimBalances[d.id]||0),0);
+  const total = hisLoans.filter(d=>!lsSimExcluded.has(d.id)).reduce((s,d)=>s+(lsSimBalances[d.id]||0),0);
   lsSimLedgerRows.push({
     step:lsSimStep, date, loanId:loan.id, loanName:loan.name||'Untitled',
     action:'Monthly payment', payment:applied, interest:interestOnPaidLoan,
@@ -1571,7 +1573,7 @@ function applySimLump(){
   lsSimBalances[loan.id] -= applied;
 
   lsSimStep++;
-  const total = hisLoans.reduce((s,d)=>s+(lsSimBalances[d.id]||0),0);
+  const total = hisLoans.filter(d=>!lsSimExcluded.has(d.id)).reduce((s,d)=>s+(lsSimBalances[d.id]||0),0);
   lsSimLedgerRows.push({
     step:lsSimStep, date, loanId:loan.id, loanName:loan.name||'Untitled',
     action:'Lump sum', payment:applied, interest:0,
@@ -1586,24 +1588,28 @@ function resetSimLoan(){
   updateSimDisplay(hisLoans.find(d=>d.id===lsSimLoanId));
   renderSimLedger(hisLoans);
 }
-function removeSimLoan(){
+// Removing a loan here only hides it from THIS simulation session — your real
+// School Loans data is never touched.
+let lsSimExcluded = new Set();
+function removeSimLoanFromSimulation(){
   if(!lsSimLoanId) return;
-  const y = state.years[2026];
-  const loan = (y.debts||[]).find(d=>d.id===lsSimLoanId);
-  if(!loan) return;
-  const ok = confirm(`Permanently remove "${loan.name||'this loan'}" from ${state.names.you}'s School Loans (2026)? This cannot be undone.`);
-  if(!ok) return;
-
-  y.debts = y.debts.filter(d=>d.id!==lsSimLoanId);
-  // this tool always analyzes 2026 directly, so cascade the removal forward manually
-  const idx = YEARS.indexOf(2026);
-  for(let i=idx+1;i<YEARS.length;i++){
-    state.years[YEARS[i]].debts = JSON.parse(JSON.stringify(y.debts));
-  }
-  delete lsSimBalances[lsSimLoanId];
+  lsSimExcluded.add(lsSimLoanId);
   lsSimLoanId = null;
-  scheduleSave();
-  renderLoanStrategy();
+  const hisLoans = getHisLoans();
+  populateSimLoanSelect(hisLoans);
+}
+function undoLastSimStep(){
+  if(lsSimLedgerRows.length===0) return;
+  lsSimLedgerRows.pop();
+  lsSimStep = lsSimLedgerRows.length;
+  if(lsSimLedgerRows.length===0){
+    getHisLoans().forEach(d=>{ lsSimBalances[d.id] = d.amount||0; });
+  } else {
+    lsSimBalances = {...lsSimLedgerRows[lsSimLedgerRows.length-1].balances};
+  }
+  const hisLoans = getHisLoans();
+  updateSimDisplay(hisLoans.find(d=>d.id===lsSimLoanId));
+  renderSimLedger(hisLoans);
 }
 function renderSimLedger(hisLoans){
   const head = document.getElementById('lsSimHead');
@@ -1631,7 +1637,7 @@ function renderSimLedger(hisLoans){
     `).join('');
   }
 
-  const currentTotal = hisLoans.reduce((s,d)=>s+(lsSimBalances[d.id]||0),0);
+  const currentTotal = hisLoans.filter(d=>!lsSimExcluded.has(d.id)).reduce((s,d)=>s+(lsSimBalances[d.id]||0),0);
   foot.innerHTML = `<tr style="font-weight:700;border-top:1.5px solid var(--ink);">
     <td colspan="6" style="padding:8px;">Total amount due (all loans)</td>
     <td style="padding:8px;">${fmt(currentTotal)}</td>
