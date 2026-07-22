@@ -110,6 +110,9 @@
     text-transform:uppercase;letter-spacing:0.02em;padding:12px 6px;white-space:normal;
   }
   .year-btn[data-year="joint"].active{background:#8B2635;box-shadow:inset 3px 0 0 #5f1a24;}
+  .year-btn[data-year="loanstrategy"].active{background:#2E3A87;box-shadow:inset 3px 0 0 #1e2760;}
+  #loanStrategyView .ov-savings-head h3{color:#2E3A87;}
+  #loanStrategyView .job-calc-header h3{color:#2E3A87;}
 
   /* Main content area */
   .main-content{flex:1;min-width:0;}
@@ -563,6 +566,7 @@
       <button class="year-btn" data-year="2028" onclick="switchYear(2028)">2028</button>
       <button class="year-btn" data-year="2029" onclick="switchYear(2029)">2029</button>
       <button class="year-btn year-btn-joint" data-year="joint" onclick="switchYear('joint')">Joint Married Budget</button>
+      <button class="year-btn year-btn-joint year-btn-loan" data-year="loanstrategy" id="loanStrategyBtn" onclick="showLoanStrategy()">Student Loan Strategy</button>
     </div>
 
     <!-- MAIN CONTENT -->
@@ -1031,6 +1035,83 @@
       </div>
 
     </div><!-- /main-content -->
+
+    <!-- STUDENT LOAN STRATEGY (standalone, not part of the year system) -->
+    <div class="main-content" id="loanStrategyView" style="display:none;">
+      <h2 class="section-title" style="color:#2E3A87;">Student loan strategy</h2>
+      <p class="section-sub">Analyzing <span id="lsWhoName">Him</span>'s school loans from your current (2026) data — while enrolled, subsidized and unsubsidized loans are treated very differently.</p>
+
+      <div class="table-scroll">
+      <table class="debt-table" style="margin-bottom:16px;">
+        <thead>
+          <tr><th style="width:26%">Name</th><th style="width:18%">Type</th><th style="width:16%">Balance</th><th style="width:14%">Rate</th><th style="width:26%">Interest status</th></tr>
+        </thead>
+        <tbody id="lsLoanTable"></tbody>
+      </table>
+      </div>
+
+      <div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr;">
+        <div class="stat-card">
+          <div class="label">Subsidized balance</div>
+          <div class="value" id="lsSubBalance">$0</div>
+          <div class="sub">No interest while enrolled ≥ half-time</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Unsubsidized / other balance</div>
+          <div class="value" id="lsUnsubBalance">$0</div>
+          <div class="sub">Accruing interest right now</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Interest accruing / month</div>
+          <div class="value" id="lsMonthlyInterest">$0</div>
+          <div class="sub">On unsubsidized/other loans only</div>
+        </div>
+      </div>
+
+      <div class="job-calc-section">
+        <div class="job-calc-header">
+          <div>
+            <h3>Suggested payment plan</h3>
+            <div class="jc-sub">Based on what's left of his income after his bills</div>
+          </div>
+        </div>
+        <div class="job-cards" style="grid-template-columns:1fr;">
+          <div class="job-card">
+            <div class="job-results" style="margin-top:0;border-top:none;padding-top:0;">
+              <div class="job-result-row"><span>His monthly income</span><span id="lsHisIncome">$0</span></div>
+              <div class="job-result-row"><span>His weekly + monthly bills</span><span id="lsHisBills">$0</span></div>
+              <div class="job-result-row"><span>His credit/car minimum payments</span><span id="lsHisDebtMin">$0</span></div>
+              <div class="job-result-row net"><span>Available surplus</span><span id="lsSurplus">$0</span></div>
+            </div>
+            <label style="margin-top:16px;">Monthly amount to put toward unsubsidized loans</label>
+            <input type="text" inputmode="decimal" id="lsPaymentInput" placeholder="0" oninput="renderLoanStrategy()">
+            <div class="job-results" id="lsSimResults"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ov-savings-section" style="margin-top:28px;">
+        <div class="ov-savings-head"><h3>Subsidized vs. unsubsidized: the rules</h3></div>
+        <div style="padding:18px 20px;font-size:13.5px;line-height:1.7;color:var(--ink);">
+          <p><b>Direct Subsidized Loans</b> — only for undergrads with financial need. The U.S. Department of Education pays the interest for you: while you're enrolled at least half-time, during the 6-month grace period after you leave school, and during authorized deferment periods. As long as you stay enrolled, these loans don't grow.</p>
+          <p><b>Direct Unsubsidized Loans</b> — available to undergrad and grad students, no financial need required. Interest starts accruing the moment the loan is disbursed and keeps accruing the entire time you're in school, whether you pay it or not.</p>
+          <p><b>PLUS loans and private student loans</b> — always accrue interest from disbursement, same as unsubsidized loans. No in-school interest subsidy applies.</p>
+          <p><b>Capitalization</b> — any unpaid accrued interest on unsubsidized/PLUS/private loans gets added to your principal balance ("capitalized") at certain trigger points — typically when your grace period ends, or when a deferment/forbearance ends. After that, you pay interest on the new, larger balance. Paying at least the accruing interest each month — even while in school — prevents this and saves money over the life of the loan.</p>
+          <p><b>Grace period</b> — most federal loans give you 6 months after you graduate or drop below half-time enrollment before payments are required.</p>
+          <p><b>Repayment plans</b> — Standard (fixed payment over 10 years), Graduated, Extended, and Income-Driven plans (SAVE, IBR, PAYE) that base payments on income and family size. Which is cheapest depends on your future income and loan balance.</p>
+          <p style="color:var(--ink-soft);font-style:italic;">This is general educational information, not personalized financial or legal advice, and federal loan rules do change. Confirm current rules and your specific loan terms at studentaid.gov before making decisions.</p>
+        </div>
+      </div>
+
+      <div class="ov-savings-section">
+        <div class="ov-savings-head"><h3>Student loan news</h3></div>
+        <div style="padding:18px 20px;">
+          <p style="font-size:13px;color:var(--ink-soft);margin:0 0 14px;">Live headlines aren't embedded here — Google News blocks that. Use this to jump straight to current coverage instead.</p>
+          <a href="https://news.google.com/search?q=student%20loans" target="_blank" rel="noopener" class="add-btn" style="display:inline-block;width:auto;text-decoration:none;color:var(--ink);">↗ Open Google News: "student loans"</a>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /layout -->
 </div><!-- /app -->
 
@@ -1229,7 +1310,122 @@ function switchYear(y){
     b.classList.toggle('active', b.dataset.year === String(y));
   });
   document.querySelector('.app').dataset.year = y;
+  document.getElementById('loanStrategyView').style.display='none';
+  document.querySelectorAll('.main-content:not(#loanStrategyView)').forEach(el=>el.style.display='');
   render();
+}
+
+function showLoanStrategy(){
+  document.querySelectorAll('.year-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.year === 'loanstrategy');
+  });
+  document.querySelectorAll('.main-content:not(#loanStrategyView)').forEach(el=>el.style.display='none');
+  document.getElementById('loanStrategyView').style.display='';
+  renderLoanStrategy();
+}
+
+function simulateLoanAvalanche(loans, monthlyPayment, maxMonths){
+  let bal = loans.map(l=>({name:l.name, balance:l.amount||0, rate:l.rate||0}));
+  let totalInterest = 0, months = 0;
+  if(monthlyPayment<=0 || bal.length===0){
+    return { months:0, totalInterest:0, payoffAchieved:false, noPayment:true };
+  }
+  while(bal.some(l=>l.balance>0.01) && months<maxMonths){
+    months++;
+    bal.forEach(l=>{
+      if(l.balance>0){
+        const interest = l.balance*(l.rate/100)/12;
+        l.balance += interest;
+        totalInterest += interest;
+      }
+    });
+    let pay = monthlyPayment;
+    const order = bal.filter(l=>l.balance>0).sort((a,b)=>b.rate-a.rate);
+    for(const l of order){
+      if(pay<=0) break;
+      const payment = Math.min(pay, l.balance);
+      l.balance -= payment;
+      pay -= payment;
+    }
+  }
+  return { months, totalInterest, payoffAchieved: bal.every(l=>l.balance<=0.01) };
+}
+
+function renderLoanStrategy(){
+  const y = state.years[2026];
+  if(!y) return;
+  document.getElementById('lsWhoName').textContent = state.names.you;
+
+  const hisLoans = (y.debts||[]).filter(d=>d.owner==='you');
+  const subLoans = hisLoans.filter(d=>d.type==='Federal Subsidized');
+  const otherLoans = hisLoans.filter(d=>d.type!=='Federal Subsidized');
+
+  const tbody = document.getElementById('lsLoanTable');
+  if(hisLoans.length===0){
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-hint">No school loans found for '+escapeHtml(state.names.you)+' in 2026.</div></td></tr>';
+  } else {
+    tbody.innerHTML = hisLoans.map(d=>{
+      const isSub = d.type==='Federal Subsidized';
+      const status = isSub
+        ? '<span style="color:var(--you);">No interest — subsidized, in school</span>'
+        : '<span style="color:var(--bad);">Accruing interest now</span>';
+      return `<tr>
+        <td>${escapeHtml(d.name)||'Untitled'}</td>
+        <td>${escapeHtml(d.type)}</td>
+        <td>${fmt(d.amount||0)}</td>
+        <td>${(d.rate||0).toFixed(2)}%</td>
+        <td style="font-size:12px;">${status}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  const subBalance = subLoans.reduce((s,d)=>s+(d.amount||0),0);
+  const otherBalance = otherLoans.reduce((s,d)=>s+(d.amount||0),0);
+  const monthlyInterest = otherLoans.reduce((s,d)=>s+((d.amount||0)*(d.rate||0)/100/12),0);
+  document.getElementById('lsSubBalance').textContent = fmt(subBalance);
+  document.getElementById('lsUnsubBalance').textContent = fmt(otherBalance);
+  document.getElementById('lsMonthlyInterest').textContent = fmt(monthlyInterest);
+
+  // His monthly surplus from real 2026 data
+  const inc = y.income || {};
+  const hisIncome = (inc.youPrimary||0) + (inc.youOther||0) + (inc.youWeekly||0)*4.33;
+  const hisWeekly = (y.weekly.you||[]).reduce((s,r)=>s+(r.amount||0),0)*4.33;
+  const hisMonthly = (y.monthly.you||[]).reduce((s,r)=>s+(r.amount||0),0);
+  const hisBills = hisWeekly + hisMonthly;
+  const hisCreditCarMin = (y.creditcars||[]).filter(d=>d.owner==='you').reduce((s,d)=>s+(d.minPay||0),0);
+  const hisSchoolMin = hisLoans.reduce((s,d)=>s+(d.minPay||0),0);
+  const hisSurplus = hisIncome - hisBills - hisCreditCarMin - hisSchoolMin;
+
+  document.getElementById('lsHisIncome').textContent = fmt(hisIncome);
+  document.getElementById('lsHisBills').textContent = fmt(hisBills);
+  document.getElementById('lsHisDebtMin').textContent = fmt(hisCreditCarMin+hisSchoolMin);
+  document.getElementById('lsSurplus').textContent = fmt(hisSurplus);
+
+  const paymentInput = document.getElementById('lsPaymentInput');
+  if(paymentInput.value === ''){
+    paymentInput.value = Math.max(0, Math.round(hisSurplus));
+  }
+  const monthlyPayment = numVal(paymentInput.value);
+
+  const sim = simulateLoanAvalanche(otherLoans, monthlyPayment, 600);
+  const simEl = document.getElementById('lsSimResults');
+  if(otherLoans.length===0){
+    simEl.innerHTML = '<div class="job-result-row"><span>No unsubsidized/other loans to pay down — nice.</span><span></span></div>';
+  } else if(sim.noPayment){
+    simEl.innerHTML = '<div class="job-result-row"><span>Enter a monthly payment above to see a payoff plan.</span><span></span></div>';
+  } else if(!sim.payoffAchieved){
+    simEl.innerHTML = `
+      <div class="job-result-row"><span>Monthly interest accruing</span><span>${fmt(monthlyInterest)}</span></div>
+      <div class="job-result-row net"><span>This payment barely covers interest</span><span style="color:var(--bad);">Increase it</span></div>
+    `;
+  } else {
+    const years = Math.floor(sim.months/12), rem = sim.months%12;
+    simEl.innerHTML = `
+      <div class="job-result-row"><span>Payoff time</span><span>${years}y ${rem}mo (${sim.months} months)</span></div>
+      <div class="job-result-row"><span>Total interest paid</span><span>${fmt(sim.totalInterest)}</span></div>
+      <div class="job-result-row net"><span>Priority order</span><span>${otherLoans.slice().sort((a,b)=>(b.rate||0)-(a.rate||0)).map(l=>escapeHtml(l.name)||'Untitled').join(' → ')}</span></div>
+    `;
+  }
 }
 
 // ---------- TABS ----------
