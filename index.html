@@ -105,6 +105,11 @@
   .year-btn[data-year="2027"].active{background:#7A4869;box-shadow:inset 3px 0 0 #532f47;}
   .year-btn[data-year="2028"].active{background:#B98B2E;box-shadow:inset 3px 0 0 #8a671f;}
   .year-btn[data-year="2029"].active{background:#3B5BA5;box-shadow:inset 3px 0 0 #283f75;}
+  .year-btn-joint{
+    font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.3;
+    text-transform:uppercase;letter-spacing:0.02em;padding:12px 6px;white-space:normal;
+  }
+  .year-btn[data-year="joint"].active{background:#8B2635;box-shadow:inset 3px 0 0 #5f1a24;}
 
   /* Main content area */
   .main-content{flex:1;min-width:0;}
@@ -131,6 +136,7 @@
   .app[data-year="2027"]{--year-color:#7A4869;}
   .app[data-year="2028"]{--year-color:#B98B2E;}
   .app[data-year="2029"]{--year-color:#3B5BA5;}
+  .app[data-year="joint"]{--year-color:#8B2635;}
 
   .panel{display:none;}
   .panel.active{display:block;animation:fadein .2s ease;}
@@ -146,6 +152,8 @@
   }
   .split .col{padding:18px 20px;}
   .split .divider{background:var(--line-strong);}
+  .split.triple{grid-template-columns:1fr 1px 1fr 1px 1fr;}
+  .split .col:nth-child(5) .col-total b{color:#8B2635;}
   .col-head{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
   .swatch{width:9px;height:9px;border-radius:50%;}
   .swatch.you{background:var(--you);}
@@ -454,13 +462,16 @@
     .year-sidebar-label{display:none;}
     .year-btn{border-bottom:none;border-right:1px solid var(--line);flex:1;padding:10px 0;font-size:14px;}
     .year-btn:last-child{border-right:none;}
+    .year-btn-joint{font-size:8px;padding:8px 3px;}
     .names-bar{grid-template-columns:1fr 1fr;}
     .name-field{padding:10px 12px;}
     .name-field input{font-size:16px;}
     .split{grid-template-columns:1fr;}
+    .split.triple{grid-template-columns:1fr;}
     .split .divider{display:none;}
     .split .col{padding:16px 14px;}
     .split .col:first-child{border-bottom:1px solid var(--line-strong);}
+    .split.triple .col:nth-child(3){border-bottom:1px solid var(--line-strong);}
     .stat-grid{grid-template-columns:1fr!important;gap:10px;}
     .stat-card{padding:14px 16px;}
     .stat-card .value{font-size:22px;}
@@ -538,6 +549,7 @@
       <button class="year-btn" data-year="2027" onclick="switchYear(2027)">2027</button>
       <button class="year-btn" data-year="2028" onclick="switchYear(2028)">2028</button>
       <button class="year-btn" data-year="2029" onclick="switchYear(2029)">2029</button>
+      <button class="year-btn year-btn-joint" data-year="joint" onclick="switchYear('joint')">Joint Married Budget</button>
     </div>
 
     <!-- MAIN CONTENT -->
@@ -765,8 +777,8 @@
       <!-- MONTHLY BILLS -->
       <div class="panel" id="panel-monthly">
         <h2 class="section-title">Monthly bills</h2>
-        <p class="section-sub">Rent/mortgage, utilities, insurance, subscriptions, anything billed monthly.</p>
-        <div class="split">
+        <p class="section-sub" id="moSectionSub">Rent/mortgage, utilities, insurance, subscriptions, anything billed monthly.</p>
+        <div class="split" id="moSplit">
           <div class="col">
             <div class="col-head"><span class="swatch you"></span><span id="moLabelYou">You</span></div>
             <div id="moYouList"></div>
@@ -779,6 +791,13 @@
             <div id="moHerList"></div>
             <button class="add-btn" onclick="addRow('moHer')">+ Add monthly bill</button>
             <div class="col-total"><span>Monthly total</span><b id="moHerTotal">$0</b></div>
+          </div>
+          <div class="divider joint-only" id="moJointDivider" style="display:none;"></div>
+          <div class="col joint-only" id="moJointCol" style="display:none;">
+            <div class="col-head"><span class="swatch" style="background:#8B2635;"></span><span>Joint (split equally)</span></div>
+            <div id="moJointList"></div>
+            <button class="add-btn" onclick="addRow('moJoint')">+ Add joint bill</button>
+            <div class="col-total"><span>Monthly total</span><b id="moJointTotal">$0</b></div>
           </div>
         </div>
       </div>
@@ -977,7 +996,7 @@ function defaultYearData(){
   return {
     income: { youPrimary:0, youOther:0, youWeekly:0, herPrimary:0, herOther:0, herWeekly:0 },
     weekly: { you:[], her:[] },
-    monthly: { you:[], her:[] },
+    monthly: { you:[], her:[], joint:[] },
     savings: { you:[], her:[] },
     plannedExpenses: Object.fromEntries(PLANNED_CATEGORIES.map(c=>[c,[]])),
     budgetItems: Object.fromEntries(CATEGORIES.map(c=>[c,[]])),
@@ -997,7 +1016,7 @@ function defaultYearData(){
 
 let state = {
   names: { you:"Him", her:"Her" },
-  years: Object.fromEntries(YEARS.map(y=>[y, defaultYearData()]))
+  years: Object.fromEntries([...YEARS, 'joint'].map(y=>[y, defaultYearData()]))
 };
 
 let activeYear = 2026;
@@ -1073,34 +1092,37 @@ function scheduleSave(){
   }, 600);
 }
 
+function mergeYearData(dst, src){
+  dst.income = src.income || dst.income;
+  dst.weekly = src.weekly || dst.weekly;
+  dst.monthly = src.monthly || dst.monthly;
+  if(!dst.monthly.joint) dst.monthly.joint = [];
+  dst.savings = src.savings || dst.savings;
+  dst.plannedExpenses = src.plannedExpenses || dst.plannedExpenses;
+  PLANNED_CATEGORIES.forEach(c=>{ if(!dst.plannedExpenses[c]) dst.plannedExpenses[c] = []; });
+  dst.debts = src.debts || dst.debts;
+  dst.creditcars = src.creditcars || dst.creditcars;
+  dst.budgetItems = src.budgetItems || dst.budgetItems;
+  dst.jobCalcs = src.jobCalcs || dst.jobCalcs || [];
+  if(src.annualRef){
+    ['you','her'].forEach(who=>{
+      dst.annualRef[who] = Object.assign({base:0,overtime:0,holiday:0,cash:0,rsu:0,hourly:0,otWage:0,bonuses:[]}, src.annualRef[who]||{});
+      if(!dst.annualRef[who].bonuses) dst.annualRef[who].bonuses = [];
+    });
+  }
+  CATEGORIES.forEach(c=>{ if(!dst.budgetItems[c]) dst.budgetItems[c] = []; });
+  if(src.mortgage){
+    dst.mortgage = Object.assign({total:0,principal:0,taxes:0,other:0,calc:{price:0,down:0,rate:6.5,years:30,taxRate:1.2,insurance:0}}, src.mortgage);
+    dst.mortgage.calc = Object.assign({price:0,down:0,rate:6.5,years:30,taxRate:1.2,insurance:0}, src.mortgage.calc||{});
+  }
+}
+
 function migrateLoaded(loaded){
   if(loaded.names) state.names = loaded.names;
   if(loaded.years){
-    YEARS.forEach(y=>{
+    [...YEARS, 'joint'].forEach(y=>{
       if(loaded.years[y]){
-        const src = loaded.years[y];
-        const dst = state.years[y];
-        dst.income = src.income || dst.income;
-        dst.weekly = src.weekly || dst.weekly;
-        dst.monthly = src.monthly || dst.monthly;
-        dst.savings = src.savings || dst.savings;
-        dst.plannedExpenses = src.plannedExpenses || dst.plannedExpenses;
-        PLANNED_CATEGORIES.forEach(c=>{ if(!dst.plannedExpenses[c]) dst.plannedExpenses[c] = []; });
-        dst.debts = src.debts || dst.debts;
-        dst.creditcars = src.creditcars || dst.creditcars;
-        dst.budgetItems = src.budgetItems || dst.budgetItems;
-        dst.jobCalcs = src.jobCalcs || dst.jobCalcs || [];
-        if(src.annualRef){
-          ['you','her'].forEach(who=>{
-            dst.annualRef[who] = Object.assign({base:0,overtime:0,holiday:0,cash:0,rsu:0,hourly:0,otWage:0,bonuses:[]}, src.annualRef[who]||{});
-            if(!dst.annualRef[who].bonuses) dst.annualRef[who].bonuses = [];
-          });
-        }
-        CATEGORIES.forEach(c=>{ if(!dst.budgetItems[c]) dst.budgetItems[c] = []; });
-        if(src.mortgage){
-          dst.mortgage = Object.assign({total:0,principal:0,taxes:0,other:0,calc:{price:0,down:0,rate:6.5,years:30,taxRate:1.2,insurance:0}}, src.mortgage);
-          dst.mortgage.calc = Object.assign({price:0,down:0,rate:6.5,years:30,taxRate:1.2,insurance:0}, src.mortgage.calc||{});
-        }
+        mergeYearData(state.years[y], loaded.years[y]);
       }
     });
   } else if(loaded.income || loaded.debts || loaded.weekly) {
@@ -1155,7 +1177,7 @@ function startRealtimeSync(){
 function switchYear(y){
   activeYear = y;
   document.querySelectorAll('.year-btn').forEach(b=>{
-    b.classList.toggle('active', parseInt(b.dataset.year)===y);
+    b.classList.toggle('active', b.dataset.year === String(y));
   });
   document.querySelector('.app').dataset.year = y;
   render();
@@ -1692,7 +1714,7 @@ function getBucket(prefix){
   return yr()[bucketSection(prefix)];
 }
 function addRow(prefix, data){
-  const owner = prefix.includes('You') ? 'you' : 'her';
+  const owner = prefix.includes('You') ? 'you' : prefix.includes('Her') ? 'her' : 'joint';
   const bucket = getBucket(prefix);
   const row = data || { id:newId(), name:'', amount:0 };
   bucket[owner].push(row);
@@ -1701,7 +1723,7 @@ function addRow(prefix, data){
   recalc();
 }
 function renderBillList(prefix){
-  const owner = prefix.includes('You') ? 'you' : 'her';
+  const owner = prefix.includes('You') ? 'you' : prefix.includes('Her') ? 'her' : 'joint';
   const bucket = getBucket(prefix);
   const list = bucket[owner];
   const el = document.getElementById(prefix+'List');
@@ -1717,7 +1739,7 @@ function renderBillList(prefix){
   `).join('');
 }
 function updateBillField(prefix, id, field, value){
-  const owner = prefix.includes('You') ? 'you' : 'her';
+  const owner = prefix.includes('You') ? 'you' : prefix.includes('Her') ? 'her' : 'joint';
   const bucket = getBucket(prefix);
   const row = bucket[owner].find(r=>r.id===id);
   if(row){ row[field] = field==='amount' ? numVal(value)||0 : value; }
@@ -1725,7 +1747,7 @@ function updateBillField(prefix, id, field, value){
   recalc();
 }
 function removeBillRow(prefix, id){
-  const owner = prefix.includes('You') ? 'you' : 'her';
+  const owner = prefix.includes('You') ? 'you' : prefix.includes('Her') ? 'her' : 'joint';
   const bucket = getBucket(prefix);
   bucket[owner] = bucket[owner].filter(r=>r.id!==id);
   cascadeForward(bucketSection(prefix));
@@ -1921,6 +1943,13 @@ function recalc(){
   document.getElementById('moYouTotal').textContent = fmt(moYouSum);
   document.getElementById('moHerTotal').textContent = fmt(moHerSum);
 
+  // Joint monthly bills (split equally between both people)
+  const moJointList = y.monthly.joint || [];
+  const moJointSum = moJointList.reduce((s,r)=>s+(r.amount||0),0);
+  const moJointTotalEl = document.getElementById('moJointTotal');
+  if(moJointTotalEl) moJointTotalEl.textContent = fmt(moJointSum);
+  const moJointSplit = moJointSum/2;
+
   // Savings
   const sv = y.savings || { you:[], her:[] };
   const svYouSum = (sv.you||[]).reduce((s,r)=>s+(r.amount||0),0);
@@ -1962,8 +1991,8 @@ function recalc(){
   const allDebts   = [...y.debts, ...cc];
   const weightedRate = totalOwed>0 ? allDebts.reduce((s,d)=>s+(d.amount||0)*(d.rate||0),0)/totalOwed : 0;
 
-  const expYou = wkYouSum + moYouSum + debtYouMin;
-  const expHer = wkHerSum + moHerSum + debtHerMin;
+  const expYou = wkYouSum + moYouSum + debtYouMin + moJointSplit;
+  const expHer = wkHerSum + moHerSum + debtHerMin + moJointSplit;
   const savYou = incYou - expYou;
   const savHer = incHer - expHer;
 
@@ -1980,6 +2009,9 @@ function recalc(){
     ['Monthly bills', moYouSum, moHerSum],
     ['Debt minimum payments', debtYouMin, debtHerMin],
   ];
+  if(moJointSum>0){
+    rows.push(['Joint bills (split equally)', moJointSplit, moJointSplit]);
+  }
   let compareHtml = rows.map(r=>`
     <tr><td>${r[0]}</td><td>${fmt(r[1])}</td><td>${fmt(r[2])}</td><td>${fmt(r[1]+r[2])}</td></tr>
   `).join('');
@@ -2070,14 +2102,30 @@ function recalc(){
   scheduleSave();
 }
 
+function updateJointVisibility(){
+  const isJoint = activeYear === 'joint';
+  const split = document.getElementById('moSplit');
+  const col = document.getElementById('moJointCol');
+  const divider = document.getElementById('moJointDivider');
+  const sub = document.getElementById('moSectionSub');
+  if(split) split.classList.toggle('triple', isJoint);
+  if(col) col.style.display = isJoint ? '' : 'none';
+  if(divider) divider.style.display = isJoint ? '' : 'none';
+  if(sub) sub.textContent = isJoint
+    ? "Rent/mortgage, utilities, insurance, subscriptions, anything billed monthly. Add shared bills to the Joint column — those are split equally between you both."
+    : 'Rent/mortgage, utilities, insurance, subscriptions, anything billed monthly.';
+}
+
 function render(){
   document.getElementById('nameYou').value = state.names.you;
   document.getElementById('nameHer').value = state.names.her;
   applyNameLabels();
   syncIncomeInputs();
   syncRefInputs();
+  updateJointVisibility();
   renderBillList('wkYou'); renderBillList('wkHer');
   renderBillList('moYou'); renderBillList('moHer');
+  if(activeYear==='joint') renderBillList('moJoint');
   renderBillList('svYou'); renderBillList('svHer');
   renderDebtTable('school');
   renderDebtTable('creditcar');
